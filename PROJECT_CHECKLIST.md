@@ -101,11 +101,14 @@ Use this as the simple working checklist for the project. Detailed reasoning bel
 
 ## 7. Power / Harness Definition
 
-- [ ] Verify dome-light connector pinout on the actual car.
-- [ ] Identify constant battery supply.
+- [X] Verify dome-light connector pinout on the actual car.
+- [X] Identify constant battery supply.
 - [ ] Identify true ground.
-- [ ] Confirm any courtesy-switched ground behavior.
-- [ ] Identify OEM Toyota connector / terminal family.
+- [X] Confirm any courtesy-switched ground behavior.
+- [X] Identify OEM Toyota connector / terminal family.
+- [ ] Verify occupied M3 cavities on the actual car.
+- [ ] Verify 20 AWG insulation OD is compatible with selected terminals.
+- [ ] Build temporary removable M3 T-harness for Rev 0 testing.
 - [ ] Design reversible inline dome-light T-harness.
 - [ ] Define parked current budget.
 - [ ] Define sleep / wake strategy.

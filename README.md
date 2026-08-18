@@ -24,6 +24,8 @@ Vehicle lock integration has **not** been connected yet. The preferred path is s
 - [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — problems that consumed meaningful time and the fixes worth remembering.
 - [`SOURCES.md`](SOURCES.md) — exact third-party provenance, firmware hash, commit IDs, and archive notes.
 - [`reference/README.md`](reference/README.md) — public/private reference-storage policy.
+- [`PROJECT_CHECKLIST.md`](PROJECT_CHECKLIST.md) — active project task list.
+- [`reference/RDA_PATH.md`](reference/RDA_PATH.md) — Toyota receiver/RDA wiring reference.
 
 ## Current Focus
 

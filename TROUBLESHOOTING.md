@@ -243,3 +243,9 @@ Add timestamps for:
 - NI session start/resume,
 - first valid UWB range,
 - secure-bubble event.
+
+---
+
+## 10. Flipper Zero Contemplated as Logic Analyzer
+
+Current official firmware + g3gg0 Logic Analyzer app caused USB re-enumeration but Windows exposed only one COM port rather than the expected analyzer CDC interface. PulseView connection could not be established. Abandoned rather than spending further time; portable oscilloscope selected as the preferred RDA characterization tool.

@@ -1,18 +1,27 @@
-# Reference Material
+# CeliKey Reference Material
 
-This folder contains public notes describing the project's private reference archive.
+Public, project-created references live directly in this folder.
 
-Actual third-party firmware/source used for the proof of concept is stored under:
+```text
+reference/
+├── README.md
+└── RDA_PATH.md
+```
+
+Third-party source material is archived locally / in Nextcloud under:
 
 ```text
 reference/private/
+├── toyota/
+│   └── EWD399U.pdf
+├── qorvo/
+│   └── DWM3001CDK-QANI-FreeRTOS_full.hex
+├── ios/
+│   └── [full known-good iOS project]
+└── smartlight-uwb/
+    └── [optional exact source snapshot]
 ```
 
-That directory is excluded from Git because redistribution rights for the recovered Qorvo/third-party material have not been established.
+`reference/private/` is intentionally excluded from Git.
 
-The private archive currently includes:
-
-- the known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`;
-- the full known-good Qorvo-derived iOS sample project used for the background-ranging POC.
-
-Exact source commit IDs, firmware hashes, tool versions, and provenance are recorded in [`../SOURCES.md`](../SOURCES.md).
+See `../SOURCES.md` for provenance, source links, commit IDs, and hashes.

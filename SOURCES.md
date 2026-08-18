@@ -2,9 +2,80 @@
 
 **Checkpoint:** 2026-08-18
 
-This file records the exact external material used for the proof of concept and what must be preserved to reproduce it.
+This file records external material that materially informed the CeliKey design or proof of concept.
 
-## 1. Smartlight_UWB
+## 1. Toyota Vehicle Wiring
+
+### 2000 Celica Electrical Wiring Diagram — EWD399U
+
+Factory publication:
+
+```text
+Toyota Celica Electrical Wiring Diagram — 2000 Model
+Publication: EWD399U
+Applicable platform: ZZT230 / ZZT231
+```
+
+Relevant section: **Overall Electrical Wiring Diagram — Multiplex Communication System**, printed pages **207–208**.
+
+The diagram identifies:
+
+```text
+D2 — Door Control Receiver
+
+D2 pin 2  → RDA → Body ECU connector B7, pin 10
+D2 pin 3  → PRG → Body ECU connector B7, pin 9
+D2 pin 5  → +B
+D2 pin 1  → GND
+```
+
+This is the source of the current preferred RDA interception/emulation hypothesis.
+
+Public reference mirrors / indexes used during research:
+
+```text
+https://www.scribd.com/doc/80237543/51-Overall-Electrical-Wiring-Diagram
+https://www.car-inform.com/celica/
+https://celica-club.lv/forums/viewtopic.php?t=538
+```
+
+See `reference/RDA_PATH.md` for a project-created redraw.
+
+Because this Celica's installed security/immobilizer arrangement includes retrofitted Toyota hardware, verify connector identity, wire color, voltage, and continuity on the actual car before connecting test equipment.
+
+## 2. NewCelica — JDM Power-Folding Mirror Prior Art
+
+Thread:
+
+```text
+https://www.newcelica.org/threads/power-folding-mirrors-from-jdm-zzt23-photo-amp-video-story.348388/
+```
+
+Why it matters:
+
+- documents 7th-gen Celica JDM power-folding mirror installation;
+- reports that the OEM folding function is controlled by the switch without a separate mirror ECU/relay;
+- identifies two additional folding-control conductors;
+- documents a prior external-module implementation.
+
+Project notes recorded from the thread:
+
+```text
+JDM switch fold-control colors reported:
+- Light Green / Black
+- Blue / Black
+```
+
+Prior external-module behavior described:
+
+```text
+double LOCK remote action → fold mirrors
+ignition ON              → unfold mirrors
+```
+
+Treat this as prior art, not a substitute for bench-testing the actual mirrors.
+
+## 3. Smartlight_UWB — Recovered Qorvo Development Source
 
 Repository:
 
@@ -12,42 +83,34 @@ Repository:
 https://github.com/Zekke-e/Smartlight_UWB
 ```
 
-Why it matters:
-
-- Used after the Qorvo SDK download portal repeatedly failed.
-- Contains the recovered Qorvo Nearby Interaction tree used for the DWM3001CDK.
-- Contains the Qorvo-derived iOS Nearby Interaction sample used for the working background POC.
-
-Exact source commit used:
+Exact commit used:
 
 ```text
 458bd834b9c5b69fc5d3c187859093a987bf8fec
 ```
 
-### Licensing caution
+Why it matters:
 
-No top-level license was visible in the recovered repository at this checkpoint. Do **not** assume its source or embedded Qorvo material may be redistributed publicly.
+- used after the Qorvo SDK download portal failed;
+- contains the Qorvo Nearby Interaction source tree used for the DWM3001CDK;
+- contains the Qorvo-derived iOS Nearby Interaction sample used for the background POC;
+- provided the known-good full firmware image.
 
-The known-good third-party material is therefore preserved privately under `reference/private/` and documented publicly here by source, commit, filename, and hash.
+Relevant areas:
 
-## 2. Known-Good DWM3001CDK Firmware
+```text
+UwbModuleDWM3001CDK/
+iOSModule/
+```
+
+No top-level license was visible at the project checkpoint. Do not assume its contents or embedded Qorvo material may be redistributed publicly.
+
+## 4. Known-Good DWM3001CDK Firmware
 
 Known-good image:
 
 ```text
 DWM3001CDK-QANI-FreeRTOS_full.hex
-```
-
-Recovered source path:
-
-```text
-UwbModuleDWM3001CDK/
-  Qorvo_Nearby_Interaction_3_1_0/
-    Software/Accessory/Sources/
-      QANI-All-FreeRTOS_QNI_3_0_0/
-        Projects/Projects/QANI/FreeRTOS/DWM3001CDK/
-          ses/Output/Common/Exe/
-            DWM3001CDK-QANI-FreeRTOS_full.hex
 ```
 
 SHA-256:
@@ -56,49 +119,65 @@ SHA-256:
 E5A0BB73BA69DBBF42AC00541B9B2B168942E5FC35C2D43F870A562021C73C39
 ```
 
-Important: the non-`full` image was **not** the known-good standalone flash for this POC.
+The non-`full` image was not the known-good standalone flash for this POC.
 
-Private archive location:
+Private archive:
 
 ```text
-reference/private/
+reference/private/qorvo/
 ```
 
-## 3. Qorvo Hardware
+## 5. Qorvo DWM3001C / DWM3001CDK
 
-Development kit:
-
-```text
-DWM3001CDK
-https://www.qorvo.com/products/p/DWM3001CDK
-```
-
-Planned custom-PCB module:
+Primary module reference:
 
 ```text
-DWM3001C
 https://www.qorvo.com/products/p/DWM3001C
 ```
 
-The project intends to use the integrated DWM3001C module rather than reproduce the raw UWB RF/antenna design.
+The future PCB concept uses the integrated DWM3001C module rather than reproducing the raw UWB RF/antenna design.
 
-## 4. Qorvo Nearby Interaction iOS Demonstrator
+Qorvo's module page also links the DWM3001CDK evaluation kit, schematic, data sheet, and design resources.
 
-Initial validation app:
+## 6. Apple Nearby Interaction
+
+Framework:
 
 ```text
-Qorvo Nearby Interaction
-App Store ID: 1615369084
+https://developer.apple.com/documentation/nearbyinteraction
 ```
 
-Used to confirm:
+Accessory configuration:
 
-- BLE connection,
-- UWB distance,
-- direction arrow,
-- compatibility of the recovered full firmware with Apple's Nearby Interaction flow.
+```text
+https://developer.apple.com/documentation/nearbyinteraction/ninearbyaccessoryconfiguration
+```
 
-## 5. Qorvo-Derived iOS Source Project
+Background-capable BLE-paired initializer:
+
+```text
+https://developer.apple.com/documentation/nearbyinteraction/ninearbyaccessoryconfiguration/init(accessorydata:bluetoothpeeridentifier:)
+```
+
+These are the primary Apple references for third-party UWB ranging and background interaction with BLE-paired accessories.
+
+## 7. Car Connectivity Consortium Digital Key
+
+Public architecture reference:
+
+```text
+https://carconnectivity.org/car-connectivity-consortium-publishes-digital-key-release-3-0-businesswire/
+```
+
+Current specification access page:
+
+```text
+https://carconnectivity.org/digital-key-specification-download-2/
+```
+
+CCC Digital Key is used as an architectural reference for the general BLE + UWB + NFC model. CeliKey is not currently claiming CCC certification or full specification compliance.
+
+## 8. Qorvo-Derived iOS Sample
 
 Recovered through `Smartlight_UWB`.
 
@@ -108,49 +187,38 @@ Known working workspace:
 NINearbyAccessorySample.xcworkspace
 ```
 
-Working scheme/target encountered:
+Working scheme/target:
 
 ```text
 Qorvo NI Background
 ```
 
-Known-good behavior:
+Known-good behavior includes physical-iPhone installation, UWB ranging, locked-screen/background operation, notifications, and autonomous recovery after a long absence.
 
-- builds and installs on the physical iPhone,
-- locked-screen/background UWB ranging works,
-- secure-bubble notifications work,
-- Apple Watch receives forwarded notifications,
-- force-quitting the app stops passive behavior.
-
-The **full known-good iOS project folder** is preserved privately under:
+Preserve the entire working iOS project privately under:
 
 ```text
-reference/private/
+reference/private/ios/
 ```
 
-Do not preserve only the `.xcworkspace`; the source/project/dependency structure is needed to reproduce the build.
-
-## 6. Apple Nearby Interaction References
-
-```text
-https://developer.apple.com/documentation/nearbyinteraction
-https://developer.apple.com/documentation/nearbyinteraction/ninearbyaccessoryconfiguration
-```
-
-The working sample behavior is consistent with Apple's BLE-paired Nearby Interaction accessory background model.
-
-## 7. SEGGER J-Link
-
-Tools used:
-
-- J-Flash Lite
-- J-Link RTT Viewer
+## 9. SEGGER J-Link Tools
 
 Vendor:
 
 ```text
 https://www.segger.com/products/debug-probes/j-link/
 ```
+
+RTT Viewer:
+
+```text
+https://www.segger.com/products/debug-probes/j-link/tools/rtt-viewer/
+```
+
+Tools used:
+
+- J-Flash Lite
+- J-Link RTT Viewer
 
 Known-good target settings:
 
@@ -160,31 +228,39 @@ Interface:  SWD
 Speed:      4000 kHz
 ```
 
-## 8. Toolchain Snapshot
+## 10. Flipper Zero Logic Analyzer Experiment
+
+App catalog:
 
 ```text
-macOS: 15.7.7
-Xcode: 26.3
-iPhone: iPhone 12 Pro Max
-iOS: 26.6
+https://catalog.flipperzero.one/application/68ed3134721e74ef7e6a3ac2/page
 ```
 
-These versions are worth recording because Apple development-device and background behavior can change with toolchain/OS revisions.
+Source:
 
-## Private Archive Policy
+```text
+https://github.com/g3gg0/flipper-logic_analyzer
+```
 
-Keep privately in Nextcloud / local storage:
+Evaluated as a possible PulseView-based RDA capture tool. The current setup failed to expose the expected analyzer serial endpoint on Windows, so the experiment was abandoned in favor of a portable oscilloscope approach. Keep the detailed failure path in `TROUBLESHOOTING.md`.
 
-- the known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`,
-- the full working Qorvo-derived iOS project folder,
-- any future third-party snapshots needed for reproducibility,
-- future modified firmware/app snapshots before they are cleanly separated into CeliKey-owned source.
+## 11. Private Reference Archive
 
-Keep publicly in GitHub:
+Recommended layout:
 
-- CeliKey-created documentation,
-- CeliKey-owned code/design files,
-- source URLs,
-- source commit IDs,
-- binary hashes,
-- patches or derived work only where licensing permits.
+```text
+reference/
+├── README.md
+├── RDA_PATH.md
+└── private/
+    ├── toyota/
+    │   └── EWD399U.pdf
+    ├── qorvo/
+    │   └── DWM3001CDK-QANI-FreeRTOS_full.hex
+    ├── ios/
+    │   └── [full known-good iOS project]
+    └── smartlight-uwb/
+        └── [optional exact source snapshot]
+```
+
+Public GitHub should contain CeliKey-created documentation, links, hashes, commit IDs, and project-created diagrams—not third-party manuals or binaries unless redistribution rights are clear.

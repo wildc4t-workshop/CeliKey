@@ -93,8 +93,55 @@ See [`CELIKEY_PCB_CONCEPT.md`](CELIKEY_PCB_CONCEPT.md) for the detailed implemen
 4. Can synthetic RDA replay preserve factory lock logic, chirp, and light-flash acknowledgement?
 5. Does one high/central UWB node provide adequate real-car coverage and inside/outside discrimination?
 6. What is the parked current budget and final low-power strategy?
-7. What exact OEM dome connector/terminal family should be used for the T-harness?
+7. ~~What exact OEM dome connector/terminal family should be used for the T-harness?~~ **(See below)**
 8. What final mirror-driver topology is required after bench characterization?
+
+### Overhead Power T-Harness — Connector Identified
+
+Toyota EWD399U identifies the moonroof/personal-light connector as **M3**. The constant-power feed is **M3 pin 2, L-W (Blue/White)**, supplied from the unswitched **7.5 A DOME** circuit.
+
+The mating connector pair for a reversible inline CeliKey T-harness has been identified:
+
+| Function | Toyota PN | Tokai Rika PN | Description | Prototype sourcing |
+|---|---|---|---|---|
+| Female housing — mates to OEM overhead assembly | `90980-11533` | `4F0800-0000` | 8-way, 1.3 mm / 050-series, unsealed, wire-to-wire female | **Corsa Technic:** stocked as `050U-8S` kit with housing + 8 socket contacts. Also listed by Sincyy. |
+| Male housing — mates to existing roof-harness female plug | `90980-11532` | `4G0800-0000` | 8-way, 1.3 mm / 050-series, unsealed, wire-to-wire male | **Sincyy:** listed in Tokai Rika inventory. **Corsa Technic:** identifies `4G0800` as the mating part; may require special order. |
+| Female terminals | — | 050-series socket | Open-barrel crimp contact | Corsa `050U-8S` includes 8 contacts for 22–20 AWG / 0.30–0.50 mm² wire. |
+| Male terminals | — | 050-series pin | Open-barrel crimp contact | Source with `4G0800`; buy spare contacts for crimp setup/testing. |
+
+Proposed harness topology:
+
+```text
+OEM roof harness
+    ↓
+CeliKey 4G0800 / 90980-11532 male
+    ↓
+8-circuit straight-through harness
+    ├── branch from M3 pin 2 (L-W constant B+)
+    │       ↓
+    │   local fuse / automotive protection
+    │       ↓
+    │   CeliKey ECU
+    ↓
+CeliKey 4F0800 / 90980-11533 female
+    ↓
+OEM M3 moonroof/personal-light assembly
+```
+
+--- 
+| T-harness end                                 | Tokai Rika      | Toyota PN       | Type                       |
+| --------------------------------------------- | --------------- | --------------- | -------------------------- |
+| Toward the original M3 overhead module        | **4F0800-0000** | **90980-11533** | 8-way female, wire-to-wire |
+| Toward the car's existing female harness plug | **4G0800-0000** | **90980-11532** | 8-way male, wire-to-wire   |
+
+| Contact       | Corsa name | Cross-reference                          | Current price |
+| ------------- | ---------- | ---------------------------------------- | ------------: |
+| Male pin      | `050U-PIN` | Sumitomo 1500-0181 / Yazaki 7114-1257-02 |     ~$0.14 ea |
+| Female socket | `050U-SKT` | Sumitomo 8100-0544 / Yazaki 7116-1257-02 |     ~$0.15 ea |
+
+--- 
+
+**Final overhead power architecture:** PCB-integrated passive M3 pass-through with on-board CeliKey B+ branch; spliced T-adapter permitted for Rev 0 prototyping only.
 
 ## Next
 
@@ -108,7 +155,7 @@ See [`CELIKEY_PCB_CONCEPT.md`](CELIKEY_PCB_CONCEPT.md) for the detailed implemen
 3. Reduce the Qorvo-derived iOS sample toward a minimal CeliKey app without breaking background operation.
 
 ### Vehicle
-1. Obtain/use a protected logic-analyzer interface.
+1. Obtain/use an o-scope for logic analysis and voltmeter probing. (FNIRSI 2D15P 100MHz 3-in-1 Oscilloscope Multimeter DDS Signal Generator: https://a.co/d/04OHVFBN) 
 2. Characterize RDA voltage and signaling.
 3. Capture repeated LOCK/UNLOCK frames.
 4. Only after passive characterization, attempt controlled RDA replay.

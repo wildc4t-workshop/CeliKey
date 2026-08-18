@@ -78,6 +78,35 @@ Before release:
 - verify true ground versus courtesy-switched ground behavior;
 - identify the exact Toyota connector and terminal family.
 
+**Overhead power candidate**: Factory EWD shows the personal-light assembly supplied by an L-W conductor downstream of the 7.5 A DOME fuse. Switching appears to occur on the lamp return/control side. EWD399U shows the 7.5 A DOME circuit fed from the battery through FL MAIN and the 25 A DCC circuit with no ignition-switched element in the path. The overhead light feed is therefore an unswitched constant-B+ source. Final T-harness pinout will be verified on the vehicle before release.
+
+L-W (Blue/White) = candidate constant +12 V from 7.5 A DOME fuse
+R-W / LG = courtesy/control-side wiring — DO NOT treat as generic ground
+
+### Overhead M3 connector
+
+Toyota EWD connector list:
+
+- Component: M3 — Moon Roof Control SW and Personal Light
+- Toyota housing: `90980-11533`
+- Tokai Rika cross-reference: `4F0800-000`
+- 8-position
+- 1.3-series terminals
+- Female, non-waterproof
+- M3 pin 2: L-W constant B+ from 7.5 A DOME circuit
+
+### Prototype vs. Final T-Harness
+
+For Rev 0 / bench and vehicle prototyping, a removable spliced T-adapter is acceptable:
+
+```text
+OEM roof harness
+    ↓
+temporary CeliKey T-adapter
+    ├── pass-through to OEM overhead assembly
+    └── crimped B+ branch to prototype electronics
+```
+
 ### UWB expansion
 
 Rev A starts with **one primary DWM3001C**.
