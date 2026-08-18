@@ -141,7 +141,7 @@ OEM M3 moonroof/personal-light assembly
 
 --- 
 
-**Final overhead power architecture:** PCB-integrated passive M3 pass-through with on-board CeliKey B+ branch; spliced T-adapter permitted for Rev 0 prototyping only.
+**Selected overhead power architecture:** Rev A will use a PCB-integrated passive M3 pass-through with an on-board protected CeliKey B+ branch. Detailed electrical, mechanical, routing, and terminal design remains incomplete; a spliced T-adapter is permitted for Rev 0 prototyping only.
 
 ## Next
 

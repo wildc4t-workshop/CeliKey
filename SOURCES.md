@@ -23,13 +23,13 @@ The diagram identifies:
 ```text
 D2 — Door Control Receiver
 
-D2 pin 2  → RDA → Body ECU connector B7, pin 10
-D2 pin 3  → PRG → Body ECU connector B7, pin 9
+D2 pin 2  ↔ RDA ↔ Body ECU connector B7 (connector B), pin 10
+D2 pin 3  ↔ PRG ↔ Body ECU connector B7 (connector B), pin 9
 D2 pin 5  → +B
 D2 pin 1  → GND
 ```
 
-This is the source of the current preferred RDA interception/emulation hypothesis.
+The EWD establishes these connections and signal names but does not mark RDA or PRG signal direction. The working interpretation is that RDA carries receiver data toward the Body ECU and PRG carries programming/communication from the Body ECU toward the receiver; electrical characterization must confirm that interpretation. This is the source of the current preferred RDA interception/emulation hypothesis.
 
 Public reference mirrors / indexes used during research:
 
@@ -42,6 +42,36 @@ https://celica-club.lv/forums/viewtopic.php?t=538
 See `reference/RDA_PATH.md` for a project-created redraw.
 
 Because this Celica's installed security/immobilizer arrangement includes retrofitted Toyota hardware, verify connector identity, wire color, voltage, and continuity on the actual car before connecting test equipment.
+
+### Toyota RDA reverse-engineering / prior art
+
+#### Toyota 4Runner Forum — OEM Fob with Remote Start Solved
+
+- [Original thread](https://www.toyota-4runner.org/4th-gen-t4rs/232473-oem-fob-remote-start-solved.html)
+- [Page 2 — measurement method and timing data](https://www.toyota-4runner.org/4th-gen-t4rs/232473-oem-fob-remote-start-solved-2.html)
+
+The author reports reverse-engineering the RDA messages on a 2008 4Runner and building a custom board that monitors the RDA line. Page 2 is the most technically valuable part of the thread: it describes using an Arduino with optocoupler isolation and publishes measured pulse timing for LOCK, UNLOCK, and PANIC messages.
+
+This is useful prior art for CeliKey's protected-input and waveform-analysis approach, but the reported 4Runner voltage levels, timing, and frames must not be assumed to apply to the 2000 Celica. Capture the Celica's signals directly.
+
+### Cross-model Toyota architecture references
+
+#### YotaTech — Adding Door Lock Control Receiver to a 2006 Tundra Double Cab
+
+[Forum thread](https://www.yotatech.com/forums/f131/adding-door-lock-control-receiver-2006-tundra-dc-298856/)
+
+The referenced Tundra receiver uses the same four-signal architecture seen in the Celica documentation: `B+`, `GND`, `PRG`, and `RDA`. The thread supports the broader Toyota architecture pattern but is not evidence that the Tundra and Celica use identical voltage levels, messages, or timing.
+
+#### Toyota Tacoma service-manual mirror — Wireless Door Lock Control ECU terminals
+
+[Terminals of ECU / Wireless Door Lock Control](https://www.ttguide.net/terminals_of_ecu-1819.html)
+
+The Tacoma diagnostic table explicitly describes:
+
+- `RDA` as a signal output from the Door Control Receiver to the Main Body ECU, with pulse generation when a transmitter button is pressed;
+- `PRG` as a signal input to the Door Control Receiver from the Main Body ECU, with pulse generation during a documented key-state transition.
+
+This cross-model factory-style diagnostic information supports the current working interpretation of RDA and PRG direction. It does not replace electrical verification on the Celica because the Tacoma receiver, connector pins, steady-state voltages, and protocol may differ.
 
 ## 2. NewCelica — JDM Power-Folding Mirror Prior Art
 

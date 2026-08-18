@@ -46,7 +46,7 @@ Use this as the simple working checklist for the project. Detailed reasoning bel
 
 - [ ] Obtain/use the FNIRSI 2D15P oscilloscope/multimeter.
 - [ ] Locate and positively identify the installed receiver RDA wire.
-- [ ] Measure RDA idle/high/low voltage before digital capture.
+- [ ] Measure RDA idle/high/low voltage before connecting any low-voltage digital input or protected capture interface.
 - [ ] Build protected high-impedance RDA capture interface.
 - [ ] Capture at least 10 LOCK commands.
 - [ ] Capture at least 10 UNLOCK commands.
@@ -101,7 +101,7 @@ Use this as the simple working checklist for the project. Detailed reasoning bel
 
 ## 7. Power / Harness Definition
 
-- [x] Verify the dome-light connector pinout in Toyota EWD399U.
+- [x] Verify the M3 pin 2 constant-B+ path in Toyota EWD399U.
 - [x] Identify the constant battery supply in Toyota EWD399U.
 - [ ] Identify true ground.
 - [x] Confirm courtesy-switched return/control behavior in Toyota EWD399U.

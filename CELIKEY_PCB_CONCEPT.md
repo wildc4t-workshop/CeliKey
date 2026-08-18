@@ -101,6 +101,12 @@ Toyota EWD connector list:
 - Female, non-waterproof
 - M3 pin 2: L-W constant B+ from 7.5 A DOME circuit
 
+Identified mating pair for the reversible pass-through:
+
+- toward the overhead assembly: female `90980-11533` / `4F0800-0000`;
+- toward the existing roof-harness female plug: male `90980-11532` / `4G0800-0000`;
+- contact family: unsealed 050-series pin/socket terminals.
+
 ### Prototype vs. Final T-Harness
 
 For Rev 0 / bench and vehicle prototyping, a removable spliced T-adapter is acceptable:
@@ -112,6 +118,8 @@ temporary CeliKey T-adapter
     ├── pass-through to OEM overhead assembly
     └── crimped B+ branch to prototype electronics
 ```
+
+Rev A architectural decision: use a PCB-integrated passive M3 pass-through with an onboard protected B+ branch. The detailed electrical, mechanical, routing, and terminal design is not yet complete.
 
 ### UWB expansion
 
@@ -253,7 +261,7 @@ OEM wireless receiver -> RDA -> Body ECU
 Relevant signals identified so far:
 
 - **RDA** — receiver data toward the Body ECU;
-- **PRG** — reverse-direction programming/diagnostic communication associated with the receiver.
+- **PRG** — programming/communication associated with the receiver; the working interpretation is Body ECU toward receiver, but EWD399U does not mark direction and electrical characterization must confirm it.
 
 Working hypothesis:
 
@@ -686,7 +694,7 @@ Only after Rev A and real-car testing:
 - final MCU;
 - parked current target;
 - exact automotive power components;
-- exact dome connector/terminal family;
+- M3 cavity population, physical fit, wire-size compatibility, and terminal validation;
 - expansion-bus electrical standard;
 - exact NFC reader/interface.
 
