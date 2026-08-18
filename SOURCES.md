@@ -1,10 +1,10 @@
 # CeliKey Sources and Provenance
 
-**Checkpoint date:** 2026-08-18
+**Checkpoint:** 2026-08-18
 
-This file records what the current proof-of-concept was built from and what should be preserved.
+This file records the exact external material used for the proof of concept and what must be preserved to reproduce it.
 
-## 1. Smartlight_UWB — primary recovered source tree
+## 1. Smartlight_UWB
 
 Repository:
 
@@ -13,41 +13,32 @@ https://github.com/Zekke-e/Smartlight_UWB
 ```
 
 Why it matters:
+
 - Used after the Qorvo SDK download portal repeatedly failed.
-- Contains:
-  - `UwbModuleDWM3001CDK`
-  - Qorvo Nearby Interaction 3.1.0 material
-  - `QANI-All-FreeRTOS_QNI_3_0_0`
-  - DWM3001CDK QANI source/build output
-  - `iOSModule`
-  - Qorvo-derived `NINearbyAccessorySample`
+- Contains the recovered Qorvo Nearby Interaction tree used for the DWM3001CDK.
+- Contains the Qorvo-derived iOS Nearby Interaction sample used for the working background POC.
 
-The repository README states that the project used the Qorvo SDK and that its iOS app was based on Qorvo's example project.
-
-### Exact commit — capture this from the local clone
-
-Run inside the locally cloned repository:
-
-```bash
-git rev-parse HEAD
-```
-
-Record result here:
+Exact source commit used:
 
 ```text
-Smartlight_UWB commit: 458bd834b9c5b69fc5d3c187859093a987bf8fec
+458bd834b9c5b69fc5d3c187859093a987bf8fec
 ```
 
 ### Licensing caution
-No top-level license file was visible in the GitHub repository at this checkpoint. Do **not** assume the repository or embedded Qorvo materials can be redistributed in a public CeliKey repository.
 
-Keep private reference snapshots in Nextcloud/local storage unless licensing is verified.
+No top-level license was visible in the recovered repository at this checkpoint. Do **not** assume its source or embedded Qorvo material may be redistributed publicly.
 
----
+The known-good third-party material is therefore preserved privately under `reference/private/` and documented publicly here by source, commit, filename, and hash.
 
-## 2. Known-good DWM3001CDK firmware
+## 2. Known-Good DWM3001CDK Firmware
 
-Recovered path:
+Known-good image:
+
+```text
+DWM3001CDK-QANI-FreeRTOS_full.hex
+```
+
+Recovered source path:
 
 ```text
 UwbModuleDWM3001CDK/
@@ -59,76 +50,59 @@ UwbModuleDWM3001CDK/
             DWM3001CDK-QANI-FreeRTOS_full.hex
 ```
 
-Known-good image:
+SHA-256:
 
 ```text
-DWM3001CDK-QANI-FreeRTOS_full.hex
+E5A0BB73BA69DBBF42AC00541B9B2B168942E5FC35C2D43F870A562021C73C39
 ```
 
-The non-`full` image was **not** the known-good standalone flash for this POC.
+Important: the non-`full` image was **not** the known-good standalone flash for this POC.
 
-### Capture the exact binary hash
-
-On macOS:
-
-```bash
-shasum -a 256 DWM3001CDK-QANI-FreeRTOS_full.hex
-```
-
-On Windows PowerShell:
-
-```powershell
-Get-FileHash .\DWM3001CDK-QANI-FreeRTOS_full.hex -Algorithm SHA256
-```
-
-Record result here:
+Private archive location:
 
 ```text
-QANI full HEX SHA-256: E5A0BB73BA69DBBF42AC00541B9B2B168942E5FC35C2D43F870A562021C73C39
+reference/private/
 ```
 
----
+## 3. Qorvo Hardware
 
-## 3. Qorvo hardware
-
-DWM3001CDK product page:
+Development kit:
 
 ```text
+DWM3001CDK
 https://www.qorvo.com/products/p/DWM3001CDK
 ```
 
-Future custom-PCB module:
+Planned custom-PCB module:
 
 ```text
+DWM3001C
 https://www.qorvo.com/products/p/DWM3001C
 ```
 
-Current architecture assumes a DWM3001C module on the eventual PCB rather than reproducing the raw UWB RF/antenna design.
+The project intends to use the integrated DWM3001C module rather than reproduce the raw UWB RF/antenna design.
 
----
+## 4. Qorvo Nearby Interaction iOS Demonstrator
 
-## 4. Qorvo Nearby Interaction iOS demonstrator
-
-App Store identifier used during the initial POC:
+Initial validation app:
 
 ```text
 Qorvo Nearby Interaction
 App Store ID: 1615369084
 ```
 
-Purpose:
-- initial iPhone ↔ DWM3001CDK validation,
-- live distance,
+Used to confirm:
+
+- BLE connection,
+- UWB distance,
 - direction arrow,
-- confirmation that the recovered full firmware could establish a Qorvo/Apple Nearby Interaction session.
+- compatibility of the recovered full firmware with Apple's Nearby Interaction flow.
 
----
+## 5. Qorvo-Derived iOS Source Project
 
-## 5. Qorvo-derived iOS source project
+Recovered through `Smartlight_UWB`.
 
-Recovered through the `Smartlight_UWB` repository.
-
-Top-level Xcode workspace opened:
+Known working workspace:
 
 ```text
 NINearbyAccessorySample.xcworkspace
@@ -140,43 +114,35 @@ Working scheme/target encountered:
 Qorvo NI Background
 ```
 
-POC result:
-- built locally in Xcode,
-- installed on the physical iPhone,
-- background/locked-screen UWB ranging worked,
-- secure-bubble notifications worked,
-- Apple Watch displayed the forwarded notifications,
-- force-quitting the app stopped operation.
+Known-good behavior:
 
----
+- builds and installs on the physical iPhone,
+- locked-screen/background UWB ranging works,
+- secure-bubble notifications work,
+- Apple Watch receives forwarded notifications,
+- force-quitting the app stops passive behavior.
 
-## 6. Apple Nearby Interaction documentation
+The **full known-good iOS project folder** is preserved privately under:
 
-Main framework:
+```text
+reference/private/
+```
+
+Do not preserve only the `.xcworkspace`; the source/project/dependency structure is needed to reproduce the build.
+
+## 6. Apple Nearby Interaction References
 
 ```text
 https://developer.apple.com/documentation/nearbyinteraction
-```
-
-Accessory configuration:
-
-```text
 https://developer.apple.com/documentation/nearbyinteraction/ninearbyaccessoryconfiguration
 ```
 
-Background-capable BLE-paired accessory initializer:
-
-```text
-https://developer.apple.com/documentation/nearbyinteraction/ninearbyaccessoryconfiguration/init(accessorydata:bluetoothpeeridentifier:)
-```
-
-Apple documents background UWB operation for BLE-paired and connected accessories; this matches the behavior successfully demonstrated in the source-built sample app.
-
----
+The working sample behavior is consistent with Apple's BLE-paired Nearby Interaction accessory background model.
 
 ## 7. SEGGER J-Link
 
 Tools used:
+
 - J-Flash Lite
 - J-Link RTT Viewer
 
@@ -189,37 +155,36 @@ https://www.segger.com/products/debug-probes/j-link/
 Known-good target settings:
 
 ```text
-nRF52833_xxAA
-SWD
-4000 kHz
+Device:     nRF52833_xxAA
+Interface:  SWD
+Speed:      4000 kHz
 ```
 
----
-
-## 8. Toolchain / Device Snapshot
-
-Observed during this checkpoint:
+## 8. Toolchain Snapshot
 
 ```text
-MacBook Pro: Intel-era MBP used for Xcode development
 macOS: 15.7.7
 Xcode: 26.3
 iPhone: iPhone 12 Pro Max
 iOS: 26.6
 ```
 
-These versions are worth preserving because future behavior may differ.
+These versions are worth recording because Apple development-device and background behavior can change with toolchain/OS revisions.
 
----
+## Private Archive Policy
 
-## Private Reference Snapshot Checklist
+Keep privately in Nextcloud / local storage:
 
-For a durable **private** archive in Nextcloud, preserve:
+- the known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`,
+- the full working Qorvo-derived iOS project folder,
+- any future third-party snapshots needed for reproducibility,
+- future modified firmware/app snapshots before they are cleanly separated into CeliKey-owned source.
 
-1. Its `git rev-parse HEAD` result.
-2. The known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`.
-3. The SHA-256 of that HEX file.
-4. Any future modified QANI source.
-5. The future modified CeliKey iOS source.
+Keep publicly in GitHub:
 
-For a **public GitHub repository**, keep the CeliKey-created files and provenance documentation, but do not publish third-party/Qorvo source or binaries until their redistribution terms are verified.
+- CeliKey-created documentation,
+- CeliKey-owned code/design files,
+- source URLs,
+- source commit IDs,
+- binary hashes,
+- patches or derived work only where licensing permits.

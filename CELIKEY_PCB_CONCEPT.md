@@ -1,50 +1,133 @@
-# Celikey PCB Concept
+# CeliKey PCB Concept
 
-**Project:** 2000 Toyota Celica GT-S  
-**Purpose:** UWB/BLE proximity access controller with OEM-style lock/unlock integration, power-folding mirror control, and a future keyless/push-button start interface  
+**Vehicle:** US-spec 2000 Toyota Celica GT-S  
+**Purpose:** UWB/BLE passive-entry controller with OEM-style lock/unlock integration, power-folding mirror control, NFC backup, and future keyless/push-button start capability  
 **Status:** Concept / architecture definition  
 **Last updated:** 2026-08-18
 
----
+This document is the design authority for hardware and vehicle-interface decisions. Current test status and milestones belong in [`PROJECT.md`](PROJECT.md).
 
-## 1. Project Goal
+## 1. Design Goals
 
-Celikey is intended to add modern proximity-key behavior to a 2000 Celica GT-S while preserving as much Toyota body-control logic as practical.
+CeliKey should:
 
-The target user experience is:
-
-- Walk up with an authorized phone/key device -> unlock the car.
-- Walk away with an authorized device -> lock the car.
-- Preserve factory-style lock/unlock handling through the Toyota Body ECU wherever possible.
-- Preserve factory acknowledgement behavior such as chirp and light flash if the Body ECU produces those behaviors from a valid wireless-receiver command.
-- Fold/unfold the OEM/JDM power-folding mirrors as part of the lock/unlock experience.
-- Reserve the architecture and I/O needed for a later keyless/push-button start implementation.
-- Retain the original Toyota remote/key path as a fallback wherever practical.
-- Keep the installation modular and reversible.
-
-This document defines the PCB-level concept and the work required before schematic capture.
-
----
+- unlock when an authorized credential approaches;
+- eventually lock when an authorized credential leaves;
+- preserve Toyota Body ECU lock logic wherever practical;
+- preserve factory acknowledgement behavior such as chirp/light flash if possible;
+- control OEM/JDM power-folding mirrors;
+- provide a secure NFC backup path;
+- reserve I/O and power capacity for later keyless/push-button start;
+- preserve the factory key/remote as fallback;
+- remain modular and reversible.
 
 ## 2. Vehicle Context
 
 The vehicle is a **US-spec 2000 Toyota Celica GT-S**.
 
-The car did **not** originally have the complete factory immobilizer/security configuration now installed. A donor-car system was retrofitted using the required Toyota modules, harnesses, and related components, and the retrofit currently operates correctly.
+The car's current immobilizer/security arrangement includes retrofitted Toyota hardware, so final connector pins and electrical behavior must be verified on the actual vehicle rather than assumed from a generic wiring diagram.
 
-This matters because the final Celikey design should interface with the **actual installed system**, not assume that every wire or module arrangement matches a stock US 2000 GT-S configuration.
+## 3. Rev A Physical Architecture
 
-Before final schematic release, all relevant connector pins and electrical behavior must therefore be verified on this specific car.
+### Main ECU location
 
----
+Baseline location:
 
-## 3. High-Level Architecture
+- high and near vehicle centerline;
+- behind the rearview mirror / windshield;
+- hidden from normal view;
+- short connection to overhead vehicle power;
+- favorable starting point for UWB coverage.
+
+### Main radio
+
+Baseline radio module:
+
+```text
+Qorvo DWM3001C
+```
+
+Reasons:
+
+- current DWM3001CDK proof of concept already validates the underlying UWB/BLE path;
+- integrated UWB antenna avoids a raw RF/antenna design in Rev A;
+- supports the Apple Nearby Interaction development path already proven.
+
+PCB layout should keep the DWM3001C antenna region clear and place the module near a board edge as required by the module layout guidance.
+
+### Vehicle power connection
+
+Use an **OEM-style inline T-harness** at the overhead/dome-light connector:
+
+```text
+Factory roof harness
+        |
+        v
+CeliKey T-harness
+   |         |
+   |         +--> CeliKey ECU
+   v
+Factory dome assembly
+```
+
+No permanent factory-wire cuts or taps.
+
+Before release:
+
+- verify which conductor is constant battery power;
+- verify true ground versus courtesy-switched ground behavior;
+- identify the exact Toyota connector and terminal family.
+
+### UWB expansion
+
+Rev A starts with **one primary DWM3001C**.
+
+Provision two optional satellite-node connections so the design can expand to as many as three physical UWB locations if vehicle testing shows that one node is insufficient for:
+
+- blind spots;
+- approach consistency;
+- inside/outside discrimination.
+
+Do not freeze the multi-node communication protocol until the single-node vehicle test demonstrates a need.
+
+### NFC backup
+
+Use a separate NFC reader/antenna daughterboard mounted near the **driver-side windshield/A-pillar**.
+
+Reasons:
+
+- practical outside tap location;
+- natural harness routing down the A-pillar;
+- separates NFC antenna tuning/location from the main UWB PCB.
+
+Exact reader, antenna, and host interface remain TBD.
+
+### Diagnostics / service
+
+Rev A should provide:
+
+- `PWR` LED;
+- `PHONE` / authenticated BLE status LED;
+- `UWB` / ranging LED;
+- `ACCESS` / would-unlock state LED;
+- service/pairing button;
+- programming/debug pads or connector.
+
+LED firmware modes should support:
+
+- DEBUG;
+- NORMAL;
+- DARK.
+
+## 4. High-Level Architecture
 
 ```mermaid
 flowchart LR
-    Phone[Authorized Phone / Key Device]
-    Radio[UWB / BLE Module]
-    MCU[Main MCU]
+    Phone[Authorized Phone]
+    Card[NFC Backup Credential]
+    Radio[DWM3001C UWB/BLE]
+    NFC[NFC Daughterboard]
+    MCU[Main MCU / Control Logic]
     RDA[RDA Interface]
     RX[OEM Toyota Wireless Receiver]
     BCM[Body ECU / BCM]
@@ -53,9 +136,15 @@ flowchart LR
     Mirrors[Power-Folding Mirror Driver]
     Start[Future Keyless Start Interface]
     Inputs[Ignition / Door / State Inputs]
+    Sat1[Optional UWB Satellite 1]
+    Sat2[Optional UWB Satellite 2]
 
     Phone --> Radio
+    Card --> NFC
     Radio --> MCU
+    NFC --> MCU
+    Sat1 <--> MCU
+    Sat2 <--> MCU
     Inputs --> MCU
 
     RX --> RDA
@@ -69,210 +158,178 @@ flowchart LR
     MCU --> Start
 ```
 
-The central architectural decision is to avoid directly replacing Toyota's door-lock control logic if the factory wireless-receiver command path can be emulated reliably.
+The preferred lock/unlock architecture is to make the Body ECU receive a valid factory-equivalent wireless-receiver command rather than directly drive door-lock motors.
 
----
+## 5. Controller Responsibilities
 
-## 4. Functional Blocks
+The main controller must:
 
-### 4.1 Main Controller
+- consume authenticated proximity state from the DWM3001C path;
+- maintain access/session state;
+- consume NFC backup authentication;
+- read vehicle-state inputs;
+- decide when access commands are permitted;
+- generate or request Toyota RDA commands if RDA emulation proves viable;
+- control mirror outputs;
+- expose reserved keyless-start I/O;
+- manage diagnostic LEDs;
+- support logging/debug/firmware update;
+- boot into safe output states.
 
-The main controller will:
+The final MCU is not yet selected. Select it after I/O, timing, expansion-bus, power, and future-start requirements are frozen enough to size it correctly.
 
-- receive authentication/proximity state from the UWB/BLE subsystem;
-- maintain vehicle-state logic;
-- decide when lock, unlock, mirror, and future-start actions are permitted;
-- generate the Toyota receiver-side RDA command waveform if RDA emulation proves viable;
-- control mirror-folding outputs;
-- provide reserved outputs and inputs for the future keyless-start implementation;
-- support debugging, firmware updates, and data logging.
+## 6. Credential / Proximity Behavior
 
-The MCU has **not yet been selected**.
+### Primary credential
 
-Selection should wait until the required I/O, timing, radio interface, automotive power strategy, and keyless-start requirements are sufficiently defined.
-
----
-
-### 4.2 UWB / BLE Authentication
-
-The radio subsystem is responsible for determining whether an authorized device is present and, eventually, whether it is approaching or leaving the vehicle.
-
-Expected capabilities:
-
-- BLE for discovery, configuration, and fallback communications;
+- phone-based;
+- BLE for discovery/session transport;
 - UWB for distance/proximity discrimination;
-- support for a phone-based primary credential;
-- architecture compatible with an emergency physical credential/card or other backup path;
-- manual-disable mode for situations such as car washing or service.
+- authentication must be separate from simple BLE RSSI.
 
-The exact radio module is outside the scope of this document.
+### Backup credential
 
----
+- secure NFC credential;
+- intended to work independently of normal passive phone behavior.
 
-## 5. Door Lock / Unlock Integration
+### Access state requirements
 
-### 5.1 Preferred Path: Toyota RDA Emulation
+The controller must support:
 
-The preferred lock/unlock integration point is the communication line between the Toyota wireless door-control receiver and the Body ECU.
+- passive entry enabled;
+- passive entry paused;
+- manual `LOCK`;
+- manual `UNLOCK`;
+- temporary/indefinite pause for wash/service;
+- session rearm/hysteresis so standing near the car does not cycle locks/mirrors.
 
-The relevant Toyota receiver signals identified so far are:
+Force-quitting the development iOS app currently stops passive behavior; this is acceptable as a development/manual-stop behavior unless later product UX requires otherwise.
+
+## 7. Door Lock / Unlock Integration
+
+### 7.1 Preferred Path: Toyota RDA Emulation
+
+Preferred integration point:
+
+```text
+OEM wireless receiver -> RDA -> Body ECU
+```
+
+Relevant signals identified so far:
 
 - **RDA** — receiver data toward the Body ECU;
 - **PRG** — reverse-direction programming/diagnostic communication associated with the receiver.
 
-The current working hypothesis is:
+Working hypothesis:
 
-1. The OEM receiver validates the Toyota RF remote.
-2. The receiver outputs a pulse-coded command on RDA.
-3. The Body ECU interprets the command as a wireless lock/unlock request.
-4. The Body ECU performs normal Toyota lock logic.
-5. The Body ECU may also generate factory acknowledgement behavior such as chirp and light flash.
+1. OEM receiver validates the Toyota RF remote.
+2. Receiver outputs a pulse-coded RDA command.
+3. Body ECU interprets that command as a wireless lock/unlock request.
+4. Body ECU performs normal Toyota lock logic.
+5. Body ECU may generate normal chirp/light-flash acknowledgement.
 
-If confirmed, Celikey would emulate the receiver's RDA command rather than directly drive the lock actuators.
+If confirmed, CeliKey should emulate the receiver command rather than directly drive lock actuators.
 
 ### Why RDA is preferred
 
-This approach potentially preserves:
+Potentially preserves:
 
-- factory door-lock actuator control;
-- factory driver-door / staged-unlock behavior;
-- factory Body ECU state logic;
-- factory lockout/interlock logic;
-- factory lock-state feedback handling;
-- factory acknowledgement chirp;
-- factory acknowledgement light flash;
-- continued operation of the OEM remote.
+- factory actuator control;
+- staged/driver-door unlock behavior;
+- Body ECU state logic;
+- interlocks;
+- lock-state feedback;
+- acknowledgement chirp;
+- acknowledgement light flash;
+- OEM remote operation.
 
-The key design objective is to make the Body ECU believe it received a legitimate command from the factory wireless receiver.
+### 7.2 RDA is not yet electrically defined
 
----
+Do not finalize the PCB RDA output stage until the actual car is measured.
 
-### 5.2 RDA Is Not Yet Electrically Defined
+Unknowns:
 
-The RDA path is **not ready for PCB implementation yet**.
-
-Unknowns that must be measured on the specific vehicle include:
-
-- idle voltage;
-- high-state voltage;
-- low-state voltage;
-- output topology of the factory receiver:
-  - push-pull;
-  - open collector/open drain;
-  - other;
+- idle/high/low voltage;
+- receiver output topology;
+- pull-up location/value;
 - source/sink current;
-- pull-up location and value;
 - polarity;
 - pulse timing;
-- whether LOCK and UNLOCK frames are fixed;
-- whether frames vary from press to press;
-- whether any checksum/counter/state information exists;
-- response to a synthetic command;
-- whether synthetic RDA commands retain chirp and light-flash acknowledgement;
-- interaction with PRG during normal operation;
-- Body ECU behavior if the OEM receiver remains electrically connected during injection.
+- LOCK and UNLOCK frame structure;
+- whether frames are static;
+- checksum/counter/state behavior;
+- PRG interaction;
+- safe coexistence with the OEM receiver;
+- acknowledgement behavior under synthetic replay.
 
-No PCB output stage should be finalized until these points are characterized.
+## 8. RDA Characterization Plan
 
----
+### Equipment
 
-## 6. RDA Characterization Plan
-
-### 6.1 Required Equipment
-
-The first characterization pass does **not** require an oscilloscope.
-
-Available equipment already includes:
+Available:
 
 - Arduino;
 - Raspberry Pi;
 - breadboard.
 
-Recommended additional tool:
+Recommended:
 
 - inexpensive 8-channel / 24 MHz USB logic analyzer compatible with sigrok/PulseView.
 
-A logic analyzer is preferred because the expected RDA information is pulse timing in the millisecond range.
+An oscilloscope is not required for the first pulse-timing pass.
 
-### Important
+### Safety rule
 
-**Do not connect an unknown automotive RDA signal directly to a 3.3 V or 5 V logic-analyzer input.**
+**Do not connect an unknown automotive RDA signal directly to a 3.3 V or 5 V logic input.**
 
-The first measurement interface must provide suitable voltage protection/level conditioning.
-
----
-
-### 6.2 Safe Capture Interface
-
-The initial breadboard interface should be high impedance and protective.
+Use a protected, high-impedance interface.
 
 Candidate approaches:
 
 - optocoupler;
 - transistor buffer;
-- protected comparator/input stage;
-- resistor network plus clamps only after the actual voltage range is understood.
+- protected comparator;
+- resistor/clamp network only after voltage range is understood.
 
-The capture circuit should:
+### Capture sequence
 
-- minimally load the Toyota RDA line;
-- tolerate the measured RDA voltage;
-- provide a clean logic-level signal to the analyzer/Arduino;
-- share ground only where appropriate for the selected interface topology.
+Capture multiple examples of:
 
-The breadboard capture interface should be treated as a test fixture, not the final PCB input circuit.
-
----
-
-### 6.3 Capture Sequence
-
-Capture multiple samples of each available factory remote function:
-
-1. LOCK
-2. UNLOCK
-3. second UNLOCK press / staged unlock behavior
-4. PANIC, if supported
-5. any other relevant remote function
+1. LOCK;
+2. UNLOCK;
+3. second UNLOCK / staged unlock;
+4. PANIC if available;
+5. any other useful factory-remote function.
 
 Recommended minimum:
 
-- 10 captures of LOCK;
-- 10 captures of UNLOCK;
-- several captures of double-press UNLOCK.
+- 10 LOCK captures;
+- 10 UNLOCK captures;
+- several double-UNLOCK captures.
 
-For every capture, record:
+Record with each capture:
 
-- vehicle ignition state;
-- door-open/closed state;
+- ignition state;
+- door state;
 - current lock state;
-- whether the car chirped;
-- whether lights flashed;
-- whether the doors moved;
-- raw RDA waveform.
+- chirp yes/no;
+- light flash yes/no;
+- actuator result;
+- raw waveform.
 
----
+### First analysis questions
 
-### 6.4 First Analysis Questions
+1. Are LOCK and UNLOCK repeatable?
+2. Are they fixed pulse sequences?
+3. Does second UNLOCK use a different command or Body ECU timing/state?
+4. What voltage/topology is used?
+5. Can the receiver be safely isolated and replayed?
 
-The first analysis only needs to answer:
+## 9. RDA Replay Test
 
-1. Is the waveform repeatable?
-2. Is LOCK always the same pulse sequence?
-3. Is UNLOCK always the same pulse sequence?
-4. Is the second unlock request represented by a different receiver command, or does the Body ECU infer it from timing/state?
-5. What voltage levels does RDA use?
-6. Does the receiver actively drive both states?
-7. Can the line be safely isolated and replayed?
+For the first replay test, **do not simply parallel an MCU output onto the OEM receiver output**.
 
-If LOCK and UNLOCK are fixed command waveforms, the problem becomes substantially simpler.
-
----
-
-## 7. RDA Replay Test
-
-After passive capture is complete, the next major milestone is a controlled replay test.
-
-### Test Architecture
+Use a topology that can isolate/select the source after the line is characterized.
 
 ```mermaid
 flowchart LR
@@ -286,474 +343,360 @@ flowchart LR
     SW --> BCM
 ```
 
-For the first test, the OEM receiver should **not simply be paralleled** with a microcontroller output.
-
-The test circuit should be able to isolate the receiver while a synthetic command is injected.
-
-Possible methods include:
+Candidate isolation approaches:
 
 - relay;
-- analog switch;
-- bilateral switch;
-- transistor/multiplexer arrangement;
-- other automotive-suitable interface after the line topology is known.
+- analog/bilateral switch;
+- transistor/multiplexer interface;
+- another topology appropriate to the measured line.
 
-### Replay Test Sequence
+Test:
 
-1. Capture a known-good OEM LOCK waveform.
-2. Capture a known-good OEM UNLOCK waveform.
-3. Isolate the factory receiver's RDA output from the Body ECU.
-4. Reproduce the captured LOCK waveform with a microcontroller.
-5. Observe:
-   - door-lock operation;
-   - chirp;
-   - light flash;
-   - any abnormal Body ECU behavior.
-6. Repeat with UNLOCK.
-7. Restore the factory receiver connection.
+1. capture known-good LOCK;
+2. capture known-good UNLOCK;
+3. isolate OEM RDA output;
+4. replay LOCK;
+5. observe doors, chirp, lights, and Body ECU behavior;
+6. repeat with UNLOCK;
+7. restore OEM path.
 
-### Critical Acceptance Criterion
+### Acceptance criterion
 
-The preferred architecture is validated if synthetic RDA commands produce the same useful Body ECU behavior as the OEM receiver, particularly:
+Preferred architecture is validated if replay produces the same useful Body ECU behavior as the OEM receiver, particularly:
 
-- correct lock/unlock operation;
-- normal Body ECU logic;
+- correct lock/unlock;
+- normal Toyota Body ECU logic;
 - factory chirp;
-- factory light-flash acknowledgement.
+- factory light flash.
 
-If RDA replay works but answer-back behavior is missing, the architecture will be reevaluated.
+If answer-back behavior is missing or replay is unreliable, reevaluate the interface.
 
----
+## 10. OEM Receiver Coexistence
 
-## 8. OEM Receiver Coexistence
+Candidate final topologies:
 
-The final design should preserve the factory remote whenever practical.
+### A. Switched source
+Select OEM receiver or CeliKey driver.
 
-Possible final topologies include:
-
-### A. Switched RDA Source
-
-The PCB selects either:
-
-- OEM receiver; or
-- Celikey synthetic RDA driver.
-
-Advantages:
-
+Pros:
 - deterministic;
-- prevents two active outputs from fighting;
-- easiest topology to reason about.
+- avoids output contention.
 
-Disadvantages:
+Cons:
+- active element in OEM signal path.
 
-- requires an active switching element in the OEM signal path.
+### B. Compatible parallel injection
+Only if measured topology proves it safe, such as a suitable open-drain/open-collector arrangement.
 
-### B. Electrically Compatible Parallel Injection
+### C. Passive OEM path with temporary isolation
+OEM receiver remains connected normally and is isolated only during CeliKey injection.
 
-This is only acceptable if characterization proves that the line topology safely permits it.
+Do not select the final topology until RDA electrical characterization is complete.
 
-For example, an open-collector/open-drain signaling architecture may permit a wired interface.
+## 11. Fallback Lock/Unlock Path
 
-**Do not assume this topology is safe until measured.**
+If RDA emulation is not viable:
 
-### C. Passive OEM Path + Temporary Isolation During Injection
+```text
+Preferred:  RDA emulation
+Fallback:   Body ECU interior lock-switch input emulation
+```
 
-The OEM receiver remains connected normally and is disconnected only for the duration of a Celikey command.
+Direct high-current lock-actuator drive is not part of the preferred architecture.
 
-This may be a good compromise for preserving stock behavior.
+## 12. Power-Folding Mirrors
 
----
+CeliKey must include mirror-control capability from the first custom PCB.
 
-## 9. Fallback Lock/Unlock Path
+Vehicle hardware:
 
-If RDA emulation proves unreliable, the fallback is to emulate the factory interior door-lock switch inputs to the Body ECU.
+- OEM/JDM 7th-generation Celica power-folding mirrors.
 
-This would retain Toyota actuator control but may not preserve factory wireless-command semantics such as chirp or answer-back flashing.
+Desired behavior:
 
-Therefore:
+- valid lock + ignition off → fold;
+- valid unlock + ignition off → unfold;
+- ignition on → inhibit unwanted automatic mirror commands;
+- pause/manual-disable available for wash/service.
 
-**RDA emulation = preferred**
+The mirror path remains logically separate from the RDA generator.
 
-**Body ECU switch-input emulation = fallback**
+Reserve either:
 
-Direct high-current actuator drive is not currently part of the preferred architecture.
+- `MIRROR_FOLD` / `MIRROR_UNFOLD`, or
+- equivalent bidirectional motor-control outputs if bench testing confirms polarity reversal is the best interface.
 
----
+Final driver topology remains TBD until bench characterization determines:
 
-## 10. Power-Folding Mirror Interface
+- exact wiring;
+- fold/unfold polarity;
+- current;
+- end-stop behavior;
+- best coexistence with the OEM/JDM switch.
 
-The PCB must include mirror-control capability from the beginning.
+Driver requirements:
 
-The car has OEM/JDM 7th-generation Celica power-folding mirrors.
+- automotive current capability;
+- inductive-load protection where required;
+- safe reset state;
+- no simultaneous contradictory command;
+- timeout;
+- ignition interlock;
+- manual disable.
 
-The desired automatic behavior is:
+## 13. Future Keyless / Push-Button Start
 
-- valid lock event with ignition off -> fold mirrors;
-- valid unlock event with ignition off -> unfold mirrors;
-- ignition on -> inhibit unwanted automatic mirror commands;
-- manual override / disable mode available for wash/service situations.
+Not part of the first functional milestone, but Rev A must reserve I/O/power headroom.
 
-The mirror system should remain logically separate from the RDA command generator.
+Potential future signals:
 
-This means Celikey should not depend on the Body ECU to operate the mirrors.
+- start button;
+- brake/clutch;
+- accessory command;
+- ignition command;
+- starter request;
+- engine-running feedback;
+- immobilizer-related interface.
 
-### Required Mirror Outputs
+Treat start control as a **separate safety-critical state machine**.
 
-Final output topology is TBD pending bench verification of the mirror/switch wiring, but the PCB should reserve:
+Access authorization does not automatically imply crank authorization.
 
-- MIRROR_FOLD control;
-- MIRROR_UNFOLD control;
+Credential loss while driving must never command engine shutdown.
 
-or equivalent bidirectional motor/control outputs if the final circuit requires polarity reversal.
-
-### Mirror Design Requirements
-
-The final mirror driver should include:
-
-- suitable automotive current capability;
-- inductive-load protection if directly driving motors/relays;
-- defined behavior during controller reset;
-- no simultaneous fold/unfold command;
-- ignition/state interlock;
-- command timeout;
-- manual-disable logic.
-
-The existing OEM/JDM mirror switch should remain usable if practical.
-
----
-
-## 11. Future Keyless / Push-Button Start
-
-The PCB architecture must reserve I/O and power capacity for a later keyless-start implementation.
-
-This feature is **not part of the first PCB functional milestone**, but the first hardware revision should avoid boxing the project into a dead-end architecture.
-
-Expected future functions may include:
-
-- accessory output;
-- ignition output;
-- starter-request output;
-- brake/clutch input;
-- ignition-state sensing;
-- engine-running detection;
-- immobilizer-related interface;
-- start-button input;
-- safety interlocks;
-- emergency/manual fallback.
-
-### Important Design Principle
-
-The keyless-start subsystem should be treated as a distinct safety-critical state machine.
-
-A proximity unlock authorization must **not automatically imply permission to crank the engine**.
-
-The firmware should maintain separate states for:
-
-- presence/authentication;
-- vehicle access;
-- ignition authorization;
-- crank authorization.
-
-Exact Toyota ignition/immobilizer integration remains TBD.
-
----
-
-## 12. Preliminary I/O Budget
-
-The following is a planning budget, not a final pinout.
+## 14. Preliminary I/O Budget
 
 ### Communications
 
 | Signal | Direction | Purpose |
 |---|---:|---|
-| UWB/BLE interface | Bidirectional | Radio module communication |
-| USB / UART debug | Bidirectional | Development / logs / firmware |
-| Optional expansion bus | Bidirectional | Future modules |
+| DWM3001C interface | Bidirectional | UWB/BLE module communication |
+| NFC interface | Bidirectional | backup credential reader |
+| Debug/programming | Bidirectional | logs / firmware |
+| Satellite UWB bus 1 | Bidirectional | optional expansion |
+| Satellite UWB bus 2 | Bidirectional | optional expansion |
 
 ### Toyota Body Interface
 
 | Signal | Direction | Purpose |
 |---|---:|---|
-| RDA_SENSE | Input | Observe factory receiver RDA |
-| RDA_DRIVE | Output | Synthetic RDA command |
-| RDA_ISOLATE / SELECT | Output | Select or isolate RDA source |
-| PRG_SENSE | Input / reserved | Characterization / future use |
-| IGN_STATE | Input | Vehicle-state interlock |
-| DOOR_STATE | Input / optional | Vehicle state |
-| LOCK_STATE | Input / optional | Verify physical lock state |
+| RDA_SENSE | Input | observe factory receiver |
+| RDA_DRIVE | Output | synthetic command |
+| RDA_ISOLATE / SELECT | Output | isolate/select source |
+| PRG_SENSE | Input / reserved | characterization/future |
+| IGN_STATE | Input | interlock |
+| DOOR_STATE | Input / optional | state |
+| LOCK_STATE | Input / optional | verify lock state |
 
 ### Mirror Interface
 
 | Signal | Direction | Purpose |
 |---|---:|---|
-| MIRROR_FOLD | Output | Fold request |
-| MIRROR_UNFOLD | Output | Unfold request |
-| MIRROR_DISABLE / manual input | Input | Optional override |
+| MIRROR_FOLD | Output | fold request |
+| MIRROR_UNFOLD | Output | unfold request |
+| MIRROR_DISABLE | Input / optional | manual override |
 
 ### Future Start Interface
 
 | Signal | Direction | Purpose |
 |---|---:|---|
-| START_BUTTON | Input | Push-button request |
-| BRAKE / CLUTCH | Input | Start interlock |
-| ACC_CMD | Output | Accessory control |
-| IGN_CMD | Output | Ignition control |
-| START_CMD | Output | Starter request |
-| ENGINE_RUN | Input | Running-state detection |
-| IMMOBILIZER_IO | Reserved | Future immobilizer interface |
+| START_BUTTON | Input | push-button request |
+| BRAKE / CLUTCH | Input | interlock |
+| ACC_CMD | Output | accessory |
+| IGN_CMD | Output | ignition |
+| START_CMD | Output | starter request |
+| ENGINE_RUN | Input | running-state feedback |
+| IMMOBILIZER_IO | Reserved | future integration |
 
-A controller with substantial spare I/O is preferred.
+Leave substantial spare I/O.
 
----
+## 15. Automotive Power Requirements
 
-## 13. Automotive Power Architecture
+The controller is permanently connected to an automotive electrical system.
 
-The final PCB will live in an automotive electrical environment and must not be powered as though it were a bench Arduino project.
+Front end must account for:
 
-The power section should eventually account for:
-
+- fused vehicle input;
 - reverse-polarity protection;
-- load dump / transient suppression;
+- transient/load-dump suppression;
 - cranking voltage drop;
 - overvoltage;
 - ESD;
-- fused vehicle input;
-- low-quiescent-current sleep operation;
-- regulated rails for MCU/radio;
+- input filtering;
+- low-quiescent regulated rails;
+- low-power parked operation;
 - wake strategy;
-- watchdog/reset behavior;
-- safe output states during brownout or reboot.
+- watchdog/reset;
+- safe outputs during brownout/reboot.
 
-Exact components are TBD.
+Exact components remain TBD.
 
-The PCB should ideally use a single fused vehicle supply and create protected internal rails.
+Do not continuously range UWB 24/7. Use a low-power presence/wake strategy and start higher-power ranging only when a candidate credential is present.
 
----
+## 16. Firmware / Access State Model
 
-## 14. Firmware State Model
+The final implementation will likely use hierarchical state machines rather than one flat enum.
 
-At minimum, firmware should distinguish the following states:
-
-```text
-NO_AUTH
-AUTH_NEAR
-AUTH_PRESENT
-AUTH_LEAVING
-VEHICLE_LOCKED
-VEHICLE_UNLOCKED
-IGNITION_OFF
-IGNITION_ON
-START_AUTHORIZED
-START_ACTIVE
-MANUAL_DISABLE
-FAULT
-```
-
-The final state model will likely be hierarchical rather than a single flat enumeration.
-
-Example access behavior:
+At minimum distinguish:
 
 ```text
-Authorized device approaches
-        |
-        v
-Check vehicle state
-        |
-        +-- ignition on? --> do nothing
-        |
-        +-- manual disable? --> do nothing
-        |
-        v
-Issue synthetic UNLOCK on RDA
-        |
-        v
-Command MIRROR_UNFOLD
+credential/authentication
+proximity/session
+vehicle lock state
+ignition state
+manual/passive-entry disable
+mirror command state
+future start authorization
+fault
 ```
 
-Example walk-away behavior:
+Access behavior concept:
 
 ```text
-Authorized device departs
+authorized device approaches
         |
         v
-Confirm departure / debounce
+check session + vehicle state
         |
-        +-- ignition on? --> inhibit auto lock/fold
+        +-- ignition on? ------> inhibit automatic access action
+        |
+        +-- passive paused? ---> inhibit
         |
         v
-Issue synthetic LOCK on RDA
+issue UNLOCK through vehicle adapter
         |
         v
-Command MIRROR_FOLD
+command mirror unfold
+        |
+        v
+latch session until true departure/rearm
 ```
 
-The actual proximity algorithm should include hysteresis and debounce so that a person moving near the threshold does not repeatedly cycle locks or mirrors.
+Hysteresis/debounce is mandatory.
 
----
+## 17. Fail-Safe / Reversibility
 
-## 15. Fail-Safe / Fallback Philosophy
+Desired failure behavior:
 
-The project should fail in a way that preserves use of the vehicle.
+- mechanical key remains usable;
+- OEM remote remains usable where practical;
+- failed controller does not continuously drive RDA;
+- failed controller does not continuously drive mirror motors;
+- reboot does not issue lock/unlock/start commands;
+- future start retains an emergency/manual fallback;
+- removal restores OEM behavior with minimal harness changes.
 
-Desired behavior:
+Use reversible harnesses rather than cutting irreplaceable Toyota wiring wherever practical.
 
-- OEM mechanical key remains usable.
-- OEM Toyota remote remains usable where practical.
-- A failed Celikey controller should not continuously drive RDA.
-- A failed controller should not continuously drive mirror motors.
-- A reboot should not issue lock/unlock/start commands.
-- Keyless start must have an independent manual/emergency path.
-- Removal of the Celikey PCB should allow restoration of OEM behavior with minimal harness changes.
+## 18. Revision Strategy
 
-Connectors and harnesses should support reversible installation rather than cutting irreplaceable Toyota wiring wherever possible.
+### Rev 0 — Bench / characterization
 
----
+- working DWM3001CDK + iPhone POC;
+- background behavior characterization;
+- mirror bench test;
+- RDA capture;
+- RDA replay fixture.
 
-## 16. PCB Revision Strategy
+No custom PCB required.
 
-### Rev 0 — Breadboard / Bench Characterization
+### Rev A — CeliKey interface/development PCB
 
-Purpose:
+- DWM3001C;
+- automotive protected power input;
+- overhead T-harness power;
+- diagnostic LEDs;
+- service button/debug pads;
+- NFC daughterboard connector;
+- two optional satellite-UWB ports;
+- protected RDA sense/drive/isolation;
+- mirror interface;
+- reserved future-start I/O;
+- vehicle I/O connector.
 
-- capture RDA;
-- determine signaling voltage and topology;
-- characterize mirror wiring;
-- prove command replay.
+### Rev B — vehicle-refined controller
 
-Hardware:
+Only after Rev A and real-car testing:
 
-- Arduino;
-- breadboard;
-- protected RDA input;
-- inexpensive USB logic analyzer;
-- temporary isolation/replay circuit.
-
-**No custom PCB required.**
-
-### Rev A — Interface Development Board
-
-Purpose:
-
-- validate automotive power supply;
-- implement protected RDA sense/drive/isolation;
-- implement mirror output drivers;
-- expose spare start-related I/O;
-- support radio/MCU development.
-
-Rev A does not need to implement complete push-button start.
-
-### Rev B — Integrated Vehicle Controller
-
-Purpose:
-
-- integrated UWB/BLE;
-- finalized Body ECU interface;
-- finalized mirror driver;
-- keyless-start hardware;
-- automotive connectors;
+- finalized interfaces;
 - enclosure;
+- connector refinement;
 - sleep/wake optimization;
-- production-quality protection.
+- validated RF placement;
+- any required satellite UWB nodes;
+- production-quality protection;
+- optional keyless-start hardware when requirements are mature.
 
----
+## 19. Open Hardware Questions
 
-## 17. Decisions Already Made
-
-The following are current project decisions unless later testing invalidates them:
-
-- The controller must support **lock/unlock, power-folding mirrors, and future keyless start**.
-- Lock/unlock should preserve Toyota Body ECU control rather than directly drive door-lock motors.
-- **RDA emulation is the preferred lock/unlock interface.**
-- The goal of RDA emulation is to preserve factory wireless-command semantics, including chirp and light-flash acknowledgement if possible.
-- The OEM receiver should remain functional if practical.
-- RDA must be characterized before the PCB output stage is designed.
-- A logic analyzer is sufficient for initial RDA timing characterization; an oscilloscope is not required for the first pass.
-- Unknown automotive signals will not be connected directly to low-voltage development hardware.
-- Mirror control is a first-class PCB requirement, not a later add-on.
-- Keyless-start I/O and architectural headroom must be reserved from the first custom PCB even if start control is implemented later.
-- The installation should be modular and reversible.
-
----
-
-## 18. Open Questions
-
-### RDA / Body ECU
-
-- What are the actual RDA voltage levels on this car?
-- What is the electrical output topology?
-- What are the exact Celica LOCK and UNLOCK pulse sequences?
-- Are the sequences static?
-- Does a second UNLOCK press create a different receiver message?
-- Does PRG participate during normal commands?
-- Can synthetic RDA replay produce factory chirp?
-- Can synthetic RDA replay produce factory light flash?
-- What is the safest OEM-receiver coexistence topology?
-- Where is the cleanest harness interception point?
+### RDA
+- actual voltage/topology;
+- exact LOCK/UNLOCK waveforms;
+- static versus changing frames;
+- PRG participation;
+- replay acceptance;
+- chirp/light answer-back;
+- safest coexistence topology;
+- cleanest interception point.
 
 ### Mirrors
+- exact JDM wiring/pinout;
+- polarity;
+- motor current;
+- end-stop behavior;
+- driver topology;
+- manual-switch coexistence.
 
-- Confirm exact JDM mirror switch pinout.
-- Bench-test fold/unfold wiring.
-- Determine motor current.
-- Determine whether the final PCB should:
-  - emulate the mirror switch;
-  - drive relays;
-  - or drive the mirror motors directly.
-- Confirm desired manual-switch coexistence behavior.
+### Main PCB
+- final MCU;
+- parked current target;
+- exact automotive power components;
+- exact dome connector/terminal family;
+- expansion-bus electrical standard;
+- exact NFC reader/interface.
 
-### Keyless Start
+### Vehicle RF
+- whether one behind-mirror UWB node is sufficient;
+- whether inside/outside discrimination requires satellites;
+- final threshold/hysteresis after vehicle testing.
 
-- Define the exact start-button behavior.
-- Define brake/clutch interlock.
-- Map ignition-switch circuits.
-- Determine how the retrofitted immobilizer should be interfaced or authenticated.
-- Define emergency fallback.
-- Determine engine-running feedback method.
-- Determine whether OEM key-cylinder functionality remains physically installed.
+### Future start
+- exact Toyota ignition/immobilizer interface;
+- clutch/start interlock;
+- engine-running feedback;
+- emergency fallback.
 
-### UWB / BLE
+## 20. Next Hardware Tests
 
-- Final radio/module choice.
-- Antenna location.
-- Phone credential architecture.
-- Backup credential architecture.
-- Sleep/wake strategy.
-- Proximity thresholds and hysteresis.
+### RDA
+1. obtain/use sigrok-compatible logic analyzer;
+2. positively identify RDA;
+3. measure voltage before connecting capture hardware;
+4. build protected input;
+5. capture repeated LOCK/UNLOCK;
+6. compare frames;
+7. only then build controlled replay fixture.
 
----
+### Mirrors
+1. bench-test known fold wires with current-limited 12 V;
+2. determine polarity;
+3. measure startup/running/end-stop current;
+4. determine suitable driver/interface architecture.
 
-## 19. Immediate Next Steps
+### Vehicle RF / power
+After the app/background behavior is stable enough:
+1. temporarily place the DWM3001CDK at the proposed behind-mirror location;
+2. test real approach/departure geometry;
+3. measure practical parked power behavior;
+4. decide whether satellite nodes are actually needed.
 
-### Next physical test session
+## 21. Definition of Success for Rev 0
 
-1. Buy or borrow a cheap sigrok/PulseView-compatible logic analyzer.
-2. Locate and positively identify the installed receiver's RDA wire.
-3. Build a protected RDA monitoring interface on the breadboard.
-4. Measure RDA idle/high levels before attaching digital capture hardware.
-5. Capture repeated LOCK and UNLOCK commands.
-6. Compare waveforms for repeatability.
-7. Document results in the repo.
-8. Only then design a controlled RDA replay fixture.
+Rev 0 is complete when:
 
-### After successful replay
+- background phone/UWB recovery is repeatable and understood;
+- the Celica Body ECU accepts synthetic RDA LOCK/UNLOCK commands with desired factory semantics;
+- mirror electrical behavior is characterized;
+- the behind-mirror UWB placement has enough real-car data to justify Rev A.
 
-If synthetic RDA commands produce normal factory behavior:
-
-1. freeze the RDA protocol requirements;
-2. select the line interface/isolation topology;
-3. characterize the mirror system;
-4. finalize the preliminary I/O list;
-5. select MCU and UWB/BLE hardware;
-6. begin Rev A schematic capture.
-
----
-
-## 20. Definition of Success for the Current Phase
-
-The current phase is complete when the following statement can be made with measured evidence:
-
-> The 2000 Celica Body ECU accepts a synthetic RDA LOCK and UNLOCK command generated by our controller, while retaining the desired factory lock logic and acknowledgement behavior.
-
-Until that is demonstrated, RDA remains the **preferred hypothesis**, not a frozen electrical interface.
-
-Once it is demonstrated, the project can move from reverse engineering into actual PCB design.
+At that point schematic capture can proceed without guessing at the key interfaces.

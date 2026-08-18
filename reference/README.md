@@ -1,24 +1,18 @@
-# Reference Copies
+# Reference Material
 
-This folder is intentionally documentation-only in the public-safe checkpoint.
+This folder contains public notes describing the project's private reference archive.
 
-The current POC depends on third-party material recovered from `Smartlight_UWB`, including embedded Qorvo firmware/source. No top-level license was visible in that GitHub repository at the checkpoint date, and Qorvo materials may carry separate licensing restrictions.
+Actual third-party firmware/source used for the proof of concept is stored under:
 
-## Recommended storage split
+```text
+reference/private/
+```
 
-### Private Nextcloud / local archive
-Keep:
-- the complete `Smartlight_UWB` clone actually used,
-- the known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`,
-- hashes/commit IDs,
-- future modified firmware/app snapshots.
+That directory is excluded from Git because redistribution rights for the recovered Qorvo/third-party material have not been established.
 
-### Public CeliKey GitHub
-Keep:
-- `PROJECT.md`
-- `TROUBLESHOOTING.md`
-- `SOURCES.md`
-- CeliKey code/design files you create
-- links, hashes, commit IDs, and patches only where licensing permits.
+The private archive currently includes:
 
-See `../SOURCES.md` for exact provenance and capture commands.
+- the known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`;
+- the full known-good Qorvo-derived iOS sample project used for the background-ranging POC.
+
+Exact source commit IDs, firmware hashes, tool versions, and provenance are recorded in [`../SOURCES.md`](../SOURCES.md).
