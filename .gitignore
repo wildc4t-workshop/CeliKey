@@ -1,0 +1,58 @@
+# ------------------------------------------------------------
+# CeliKey public-repo exclusions
+# ------------------------------------------------------------
+
+# Recovered / third-party source trees.
+# Keep these in the private Nextcloud/reference archive, not the public repo.
+iOSModule/
+UwbModuleDWM3001CDK/
+third_party/
+vendor/
+reference/private/
+
+# Firmware / build binaries
+*.hex
+*.bin
+*.elf
+*.map
+*.uf2
+
+# Compiled object/dependency files
+*.o
+*.obj
+*.d
+*.a
+*.lib
+
+# SEGGER / embedded build output
+**/Output/
+**/Debug/
+**/Release/
+
+# Xcode USER / MACHINE generated files.
+# NOTE: .xcodeproj and .xcworkspace are intentionally NOT ignored;
+# your future CeliKey iOS project should be committed.
+DerivedData/
+*.xcuserstate
+xcuserdata/
+**/*.xcworkspace/xcuserdata/
+**/*.xcodeproj/xcuserdata/
+
+# CocoaPods generated dependency directory.
+# If the project later depends on Pods, commit Podfile/Podfile.lock,
+# but regenerate Pods locally.
+Pods/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Editor / temporary files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
