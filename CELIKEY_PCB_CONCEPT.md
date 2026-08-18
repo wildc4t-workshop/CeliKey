@@ -748,33 +748,7 @@ If synthetic RDA commands produce normal factory behavior:
 
 ---
 
-## 20. Suggested Repository Structure
-
-```text
-Celikey/
-├── README.md
-├── docs/
-│   ├── PCB_CONCEPT.md
-│   ├── RDA_CHARACTERIZATION.md
-│   ├── MIRROR_INTERFACE.md
-│   └── KEYLESS_START_REQUIREMENTS.md
-├── hardware/
-│   ├── rev0-test-fixtures/
-│   ├── revA/
-│   └── revB/
-├── firmware/
-│   ├── rda-capture/
-│   ├── rda-replay/
-│   └── controller/
-├── captures/
-│   └── rda/
-└── reference/
-    └── wiring-notes/
-```
-
----
-
-## 21. Definition of Success for the Current Phase
+## 20. Definition of Success for the Current Phase
 
 The current phase is complete when the following statement can be made with measured evidence:
 

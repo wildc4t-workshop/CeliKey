@@ -35,7 +35,7 @@ git rev-parse HEAD
 Record result here:
 
 ```text
-Smartlight_UWB commit: TO CAPTURE FROM LOCAL CLONE
+Smartlight_UWB commit: 458bd834b9c5b69fc5d3c187859093a987bf8fec
 ```
 
 ### Licensing caution
@@ -84,7 +84,7 @@ Get-FileHash .\DWM3001CDK-QANI-FreeRTOS_full.hex -Algorithm SHA256
 Record result here:
 
 ```text
-QANI full HEX SHA-256: TO CAPTURE FROM LOCAL FILE
+QANI full HEX SHA-256: E5A0BB73BA69DBBF42AC00541B9B2B168942E5FC35C2D43F870A562021C73C39
 ```
 
 ---
@@ -216,11 +216,10 @@ These versions are worth preserving because future behavior may differ.
 
 For a durable **private** archive in Nextcloud, preserve:
 
-1. The complete local `Smartlight_UWB` clone used for the POC.
-2. Its `git rev-parse HEAD` result.
-3. The known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`.
-4. The SHA-256 of that HEX file.
-5. Any future modified QANI source.
-6. The future modified CeliKey iOS source.
+1. Its `git rev-parse HEAD` result.
+2. The known-good `DWM3001CDK-QANI-FreeRTOS_full.hex`.
+3. The SHA-256 of that HEX file.
+4. Any future modified QANI source.
+5. The future modified CeliKey iOS source.
 
 For a **public GitHub repository**, keep the CeliKey-created files and provenance documentation, but do not publish third-party/Qorvo source or binaries until their redistribution terms are verified.
