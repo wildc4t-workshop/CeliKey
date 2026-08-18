@@ -72,16 +72,22 @@ Factory dome assembly
 
 No permanent factory-wire cuts or taps.
 
-Before release:
+Verified from Toyota EWD399U:
 
-- verify which conductor is constant battery power;
-- verify true ground versus courtesy-switched ground behavior;
-- identify the exact Toyota connector and terminal family.
+- M3 pin 2, L-W (Blue/White), is the constant battery feed from the 7.5 A DOME circuit;
+- the lamp return/control conductors are courtesy-switched and must not be treated as generic ground;
+- the M3 connector housing and mating connector family have been identified.
 
-**Overhead power candidate**: Factory EWD shows the personal-light assembly supplied by an L-W conductor downstream of the 7.5 A DOME fuse. Switching appears to occur on the lamp return/control side. EWD399U shows the 7.5 A DOME circuit fed from the battery through FL MAIN and the 25 A DCC circuit with no ignition-switched element in the path. The overhead light feed is therefore an unswitched constant-B+ source. Final T-harness pinout will be verified on the vehicle before release.
+Factory EWD399U shows the personal-light assembly supplied by an L-W conductor downstream of the 7.5 A DOME fuse. Switching occurs on the lamp return/control side. The 7.5 A DOME circuit is fed from the battery through FL MAIN and the 25 A DCC circuit with no ignition-switched element in the path. The overhead light feed is therefore an unswitched constant-B+ source.
 
-L-W (Blue/White) = candidate constant +12 V from 7.5 A DOME fuse
+L-W (Blue/White) = constant +12 V from 7.5 A DOME fuse, as verified in EWD399U
 R-W / LG = courtesy/control-side wiring — DO NOT treat as generic ground
+
+Still to verify on the actual vehicle before release:
+
+- occupied M3 cavities and wire colors;
+- a suitable true-ground connection;
+- voltage and continuity before connecting prototype electronics.
 
 ### Overhead M3 connector
 
@@ -89,7 +95,7 @@ Toyota EWD connector list:
 
 - Component: M3 — Moon Roof Control SW and Personal Light
 - Toyota housing: `90980-11533`
-- Tokai Rika cross-reference: `4F0800-000`
+- Tokai Rika cross-reference: `4F0800-0000`
 - 8-position
 - 1.3-series terminals
 - Female, non-waterproof
@@ -301,11 +307,11 @@ Available:
 - Raspberry Pi;
 - breadboard.
 
-Recommended:
+Intended purchase:
 
-- inexpensive 8-channel / 24 MHz USB logic analyzer compatible with sigrok/PulseView.
+- FNIRSI 2D15P 100 MHz 3-in-1 oscilloscope/multimeter/DDS signal generator.
 
-An oscilloscope is not required for the first pulse-timing pass.
+Use the oscilloscope and voltmeter functions for the initial voltage, topology, and pulse-timing characterization. A separate inexpensive logic analyzer is not the current planned purchase; consider one later only if extended digital frame capture or protocol decoding makes it useful.
 
 ### Safety rule
 
@@ -698,7 +704,7 @@ Only after Rev A and real-car testing:
 ## 20. Next Hardware Tests
 
 ### RDA
-1. obtain/use sigrok-compatible logic analyzer;
+1. obtain/use the FNIRSI 2D15P oscilloscope/multimeter;
 2. positively identify RDA;
 3. measure voltage before connecting capture hardware;
 4. build protected input;

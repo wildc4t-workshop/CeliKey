@@ -124,7 +124,7 @@ The non-`full` image was not the known-good standalone flash for this POC.
 Private archive:
 
 ```text
-reference/private/qorvo/
+reference/private/Qorvo/
 ```
 
 ## 5. Qorvo DWM3001C / DWM3001CDK
@@ -198,7 +198,7 @@ Known-good behavior includes physical-iPhone installation, UWB ranging, locked-s
 Preserve the entire working iOS project privately under:
 
 ```text
-reference/private/ios/
+reference/private/Qorvo/Qorvo_NI_Background_v1.0.0/
 ```
 
 ## 9. SEGGER J-Link Tools
@@ -253,14 +253,12 @@ reference/
 ├── README.md
 ├── RDA_PATH.md
 └── private/
-    ├── toyota/
-    │   └── EWD399U.pdf
-    ├── qorvo/
-    │   └── DWM3001CDK-QANI-FreeRTOS_full.hex
-    ├── ios/
-    │   └── [full known-good iOS project]
-    └── smartlight-uwb/
-        └── [optional exact source snapshot]
+    ├── EWD399U.pdf
+    └── Qorvo/
+        ├── DWM3001CDK-QANI-FreeRTOS_full.hex
+        ├── DWM3001CDK_Quick_Start_Guide_QM33SDK-1.0.0.pdf
+        └── Qorvo_NI_Background_v1.0.0/
+            └── [full known-good iOS project]
 ```
 
 Public GitHub should contain CeliKey-created documentation, links, hashes, commit IDs, and project-created diagrams—not third-party manuals or binaries unless redistribution rights are clear.

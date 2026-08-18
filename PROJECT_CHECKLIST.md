@@ -44,7 +44,7 @@ Use this as the simple working checklist for the project. Detailed reasoning bel
 
 ## 3. Vehicle RDA Characterization
 
-- [ ] Obtain/use a sigrok/PulseView-compatible logic analyzer.
+- [ ] Obtain/use the FNIRSI 2D15P oscilloscope/multimeter.
 - [ ] Locate and positively identify the installed receiver RDA wire.
 - [ ] Measure RDA idle/high/low voltage before digital capture.
 - [ ] Build protected high-impedance RDA capture interface.
@@ -101,11 +101,11 @@ Use this as the simple working checklist for the project. Detailed reasoning bel
 
 ## 7. Power / Harness Definition
 
-- [X] Verify dome-light connector pinout on the actual car.
-- [X] Identify constant battery supply.
+- [x] Verify the dome-light connector pinout in Toyota EWD399U.
+- [x] Identify the constant battery supply in Toyota EWD399U.
 - [ ] Identify true ground.
-- [X] Confirm any courtesy-switched ground behavior.
-- [X] Identify OEM Toyota connector / terminal family.
+- [x] Confirm courtesy-switched return/control behavior in Toyota EWD399U.
+- [x] Identify OEM Toyota connector / terminal family.
 - [ ] Verify occupied M3 cavities on the actual car.
 - [ ] Verify 20 AWG insulation OD is compatible with selected terminals.
 - [ ] Build temporary removable M3 T-harness for Rev 0 testing.

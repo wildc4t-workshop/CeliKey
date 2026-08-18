@@ -155,7 +155,7 @@ OEM M3 moonroof/personal-light assembly
 3. Reduce the Qorvo-derived iOS sample toward a minimal CeliKey app without breaking background operation.
 
 ### Vehicle
-1. Obtain/use an o-scope for logic analysis and voltmeter probing. (FNIRSI 2D15P 100MHz 3-in-1 Oscilloscope Multimeter DDS Signal Generator: https://a.co/d/04OHVFBN) 
+1. Obtain/use the intended FNIRSI 2D15P 100 MHz 3-in-1 oscilloscope/multimeter/DDS signal generator for RDA voltage, topology, and pulse-timing characterization. (https://a.co/d/04OHVFBN)
 2. Characterize RDA voltage and signaling.
 3. Capture repeated LOCK/UNLOCK frames.
 4. Only after passive characterization, attempt controlled RDA replay.

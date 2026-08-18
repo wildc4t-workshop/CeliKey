@@ -12,14 +12,12 @@ Third-party source material is archived locally / in Nextcloud under:
 
 ```text
 reference/private/
-├── toyota/
-│   └── EWD399U.pdf
-├── qorvo/
-│   └── DWM3001CDK-QANI-FreeRTOS_full.hex
-├── ios/
-│   └── [full known-good iOS project]
-└── smartlight-uwb/
-    └── [optional exact source snapshot]
+├── EWD399U.pdf
+└── Qorvo/
+    ├── DWM3001CDK-QANI-FreeRTOS_full.hex
+    ├── DWM3001CDK_Quick_Start_Guide_QM33SDK-1.0.0.pdf
+    └── Qorvo_NI_Background_v1.0.0/
+        └── [full known-good iOS project]
 ```
 
 `reference/private/` is intentionally excluded from Git.
