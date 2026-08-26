@@ -1,0 +1,57 @@
+id: celikey
+name: CeliKey
+repository: wildc4t-workshop/CeliKey
+repository_type: engineering-project
+status: active
+phase: prototype
+checkpoint: 2026-08-26
+
+task_prefix: KEY-
+decision_prefix: DEC-KEY-
+
+objective: >-
+  Build a reversible, OEM-like passive-entry and body-control system for the
+  2000 Celica GT-S using phone BLE/UWB as the primary credential, NFC fallback,
+  factory Body ECU integration where practical, power-folding mirror control,
+  and provision for future keyless/push-button start.
+
+current_direction:
+  - DWM3001C is the preferred future UWB/BLE module.
+  - Use one high/central primary UWB node first, with provision for optional satellites.
+  - Preserve the factory Toyota key, remote, immobilizer, Body ECU, and normal lock logic as fallbacks where possible.
+  - Prefer RDA emulation to direct lock-actuator control if vehicle testing proves it can preserve factory chirp and light-flash acknowledgement.
+  - Use an OEM-style overhead DOME-power pass-through/T-harness for reversible constant-power integration.
+  - Keep dedicated control paths for lock/unlock, power-folding mirrors, and future keyless/push-button start.
+
+proven_baseline:
+  - DWM3001CDK development board successfully brought up.
+  - iPhone-to-DWM3001CDK UWB ranging works with distance and direction.
+  - Locked-screen/background ranging works when the app remains backgrounded.
+  - Long-away recovery has worked at proof-of-concept level with approximately 13 seconds observed reacquisition latency.
+  - Force-quitting the iOS app stops passive operation.
+
+interfaces:
+  - toyota-body-ecu
+  - keyless-receiver-rda
+  - power-folding-mirrors
+  - ignition-state
+  - future-start-authorization
+  - overhead-dome-power
+  - ios-background-execution
+  - ble
+  - uwb
+  - nfc
+  - vehicle-quiescent-current
+
+success_criteria:
+  current_software_phase: >-
+    Background recovery is repeatable and its latency is understood well enough
+    to tune for passive-entry use.
+  current_vehicle_interface_phase: >-
+    The Celica Body ECU accepts synthetic RDA LOCK/UNLOCK commands while
+    preserving desired factory lock behavior, chirp, and light-flash acknowledgement.
+
+dashboard:
+  task_file: tasks.csv
+  durable_state: PROJECT.md
+  agent_instructions: AGENTS.md
