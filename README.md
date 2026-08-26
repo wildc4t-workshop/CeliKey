@@ -17,21 +17,25 @@ The core phone/UWB proof of concept works:
 
 Vehicle lock integration has **not** been connected yet. The preferred path is still to characterize and, if viable, emulate the Toyota wireless receiver's **RDA** command path into the Body ECU.
 
-## Documentation
+The FNIRSI scope/multimeter intended for the first RDA electrical characterization has now been delivered and is available for use.
 
-- [`PROJECT.md`](PROJECT.md) — current status, milestones, open questions, and next work.
+## Source of Truth
+
+- [`PROJECT.md`](PROJECT.md) — current engineering state, proven milestones, selected/tentative architecture, and open questions.
+- [`tasks.csv`](tasks.csv) — **canonical executable work queue and task status**.
+- [`project.yaml`](project.yaml) — machine-readable project state for the dashboard.
+- [`PROJECT_CHECKLIST.md`](PROJECT_CHECKLIST.md) — milestone/context roadmap only; it deliberately does not duplicate task status.
 - [`CELIKEY_PCB_CONCEPT.md`](CELIKEY_PCB_CONCEPT.md) — hardware/vehicle architecture and PCB requirements.
 - [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — problems that consumed meaningful time and the fixes worth remembering.
 - [`SOURCES.md`](SOURCES.md) — exact third-party provenance, firmware hash, commit IDs, and archive notes.
-- [`reference/README.md`](reference/README.md) — public/private reference-storage policy.
-- [`PROJECT_CHECKLIST.md`](PROJECT_CHECKLIST.md) — active project task list.
 - [`reference/RDA_PATH.md`](reference/RDA_PATH.md) — Toyota receiver/RDA wiring reference.
+- [`reference/README.md`](reference/README.md) — public/private reference-storage policy.
 
 ## Current Focus
 
 1. Instrument the iOS sample to locate the source of the ~13 s background reacquisition delay.
-2. Preserve the known-good background behavior while reducing the sample into a minimal CeliKey app.
-3. Characterize the Celica RDA line before designing the final vehicle interface.
+2. Characterize the actual Celica RDA electrical interface and capture factory commands.
+3. Preserve the known-good background behavior while reducing the sample into a minimal CeliKey app.
 
 ## Reference Material
 
