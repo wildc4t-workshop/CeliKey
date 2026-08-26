@@ -2,217 +2,162 @@
 
 ## Repository mission
 
-This repository is the engineering system of record for **CeliKey**, the Celica passive-entry / body-control project. The project includes BLE/UWB phone proximity, NFC fallback, lock/unlock integration, power-folding mirror control, and provision for future keyless/push-button start.
+This repository is the engineering system of record for **CeliKey**, the 2000 Celica GT-S passive-entry/body-control project using BLE/UWB phone proximity, secure NFC fallback, Toyota Body ECU integration, power-folding mirror control, and reserved future keyless-start capability.
 
-The repository must remain understandable without any external task manager or chat history.
+The repository must remain understandable without chat history.
 
 ## Core operating rule
 
-**Documentation is engineering memory. `tasks.csv` is engineering attention. Any dashboard is a derived view only.**
+**Documentation is engineering memory. `tasks.csv` is engineering attention. `project.yaml` is machine-readable state. The dashboard is derived only.**
 
-Do not put durable technical conclusions only in tasks, issue comments, commit messages, or chat summaries. If work creates knowledge that will matter later, write it into the appropriate repository document.
+Do not leave durable technical conclusions only in tasks, chat, commit messages, screenshots, or code. Preserve the reusable result in the appropriate repository document.
 
-## Read before changing anything
+## Source-of-truth files
 
-Before making technical changes or updating project state, read the relevant current files, especially:
+Read these before changing project state:
 
-- `PROJECT.md`
-- `CELIKEY_PCB_CONCEPT.md`
-- `SOURCES.md`
-- `PROJECT_CHECKLIST.md` if still applicable
-- `tasks.csv` when present
-- `project.yaml` when present
-- any topic-specific document affected by the work
+- `PROJECT.md` — current engineering state and open questions;
+- `tasks.csv` — **canonical executable work queue and task status**;
+- `project.yaml` — machine-readable state;
+- `CELIKEY_PCB_CONCEPT.md` — hardware/vehicle-interface design authority;
+- `PROJECT_CHECKLIST.md` — milestone/context roadmap only, not a second status queue;
+- `SOURCES.md` / `reference/` — provenance and vehicle/interface reference;
+- `TROUBLESHOOTING.md` — durable lessons from problems worth remembering.
 
-Treat the repository as authoritative over remembered conversation context when they conflict, unless the repository is explicitly being corrected.
+Treat the repository as authoritative unless the user is explicitly correcting it.
 
 ## Collaboration rule
 
-The user may report CeliKey state changes in natural language from any chat, for example:
+The user may report state changes in natural language from any chat, for example:
 
 - `CeliKey: the oscilloscope arrived.`
 - `I captured the RDA line during unlock.`
 - `That receiver pin is different on my car.`
 
-Do not require the user to know task IDs, filenames, or CSV structure. Read the repository, resolve the affected task/state, update durable documentation and dependencies as appropriate, and report what changed.
+Do not require task IDs, filenames, or CSV knowledge. Read the repo, resolve the affected state/task, update durable documentation and dependencies as appropriate, and report what changed.
 
 If the user explicitly says not to update GitHub yet, discuss only.
 
-## Engineering state model
+## State and evidence discipline
 
-Classify new information before recording it:
+Classify new information as appropriate:
 
-1. **Fact / observation** — measured, tested, factory-documented, manufacturer-documented, or otherwise directly supported.
-2. **Inference** — technically reasoned but not yet directly verified.
-3. **Tentative decision** — current preferred direction that may change with evidence.
-4. **Selected decision** — architecture or implementation choice accepted as the working baseline.
-5. **Rejected / superseded decision** — preserve rationale and replacement rather than deleting history.
-6. **Open question** — unresolved information that blocks or influences design.
-7. **Task** — an executable action that can create knowledge, make a decision possible, or advance implementation.
+- fact / observation;
+- inference;
+- tentative direction;
+- selected decision;
+- rejected / superseded decision;
+- open question;
+- executable task.
 
-Never present an inference or tentative direction as a proven fact.
+Useful evidence labels include `MEASURED-CAR`, `BENCH-TESTED`, `FIT-CHECKED`, `FACTORY-DOC`, `MANUFACTURER`, `COMMUNITY-CORROBORATED`, `CAD-DERIVED`, `INFERRED`, and `TENTATIVE`.
 
-## Evidence language
+Never present an inference or tentative direction as a proven fact. Preserve year/model applicability and actual-car verification where Toyota wiring/behavior can differ.
 
-When useful, identify the basis of a claim as one of:
+## Task and decision management
 
-- `MEASURED-CAR`
-- `BENCH-TESTED`
-- `FACTORY-DOC`
-- `MANUFACTURER`
-- `COMMUNITY-CORROBORATED`
-- `INFERRED`
-- `TENTATIVE`
-
-Preserve source links, document identifiers, part numbers, test conditions, firmware versions, and dates when they affect reproducibility.
-
-## Decision management
-
-Use stable decision IDs with the prefix:
-
-`DEC-KEY-###`
-
-A decision record should capture:
-
-- decision ID
-- status: `tentative`, `selected`, `superseded`, or `rejected`
-- date/checkpoint
-- problem being resolved
-- selected direction
-- rationale
-- evidence supporting it
-- alternatives considered
-- downstream implications
-- verification still required
-- superseding decision ID when applicable
-
-Do not erase old architecture merely because a newer design is preferred. Mark it superseded and point to the replacement.
-
-## Task management
-
-Use globally unique CeliKey task IDs:
+Use globally unique task IDs:
 
 `KEY-###`
 
-When `tasks.csv` exists, use this schema unless the program-wide schema is intentionally revised:
+Decision IDs:
+
+`DEC-KEY-###`
+
+Canonical task schema:
 
 ```text
 id,title,status,action,time_min,context,cost,priority,blocked_by,decision_needed,doc_link,requires_car_down,requires_parts,notes
 ```
 
-Allowed `status` values:
+Allowed statuses:
 
-- `backlog`
-- `ready`
-- `doing`
-- `blocked`
-- `verify`
-- `done`
+`backlog`, `ready`, `doing`, `blocked`, `verify`, `done`
 
-Preferred `action` values:
+Supported actions:
 
-- `research`
-- `measure`
-- `buy`
-- `cad`
-- `mockup`
-- `bench-test`
-- `vehicle-test`
-- `code`
-- `fabricate`
-- `install`
-- `document`
+`research`, `measure`, `buy`, `cad`, `mockup`, `bench-test`, `vehicle-test`, `code`, `fabricate`, `install`, `document`, `verify`
 
-Preferred `context` values:
+Supported contexts:
 
-- `desk`
-- `phone`
-- `garage`
-- `car`
-- `bench`
-- `cad`
-- `computer`
+`desk`, `phone`, `garage`, `car`, `bench`, `cad`, `computer`
 
-Use integer minutes for `time_min`. Size tasks to approximately 15–60 minutes when practical. Break work expected to exceed roughly two hours into smaller independently useful tasks.
+Keep tasks executable and dependency-driven. A blocked task should identify the actual dependency when known. Do not duplicate task status into `PROJECT_CHECKLIST.md`.
 
-Use semicolon-separated task IDs in `blocked_by`, for example:
+## Current architectural principles
 
-`KEY-014;KEY-021`
+Protect these unless evidence explicitly changes them:
 
-Cross-project dependencies may reference another globally unique task ID, for example:
+- preserve mechanical key, factory Toyota remote, immobilizer, and Body ECU fallback paths;
+- prefer reversible/OEM-like vehicle interfaces;
+- prefer receiver **RDA → Body ECU** integration if characterization/replay proves it reliable and preserves factory semantics;
+- do not finalize RDA circuitry before actual-car electrical characterization;
+- use one high/central UWB node first and add satellites only if testing demonstrates a need;
+- use DWM3001C as the preferred future radio module;
+- use the overhead M3 constant-power path through a reversible pass-through/T-harness architecture;
+- keep dedicated control paths for lock/unlock, power-folding mirrors, and reserved future start interfaces;
+- separate credential authentication from proximity;
+- preserve background-operation and parked-current requirements as first-class constraints;
+- do not convert proof-of-concept behavior directly into production assumptions without verification.
 
-`STREET-010` or `BASE-005`
+The delivered FNIRSI scope/multimeter means equipment acquisition is no longer the RDA blocker; positive identification of the installed RDA wire is the next vehicle-side gate.
 
-A blocked task must identify the actual dependency whenever known. Do not use `blocked` merely to mean low priority.
+## Vehicle-interface discipline
+
+For every RDA capture preserve vehicle/ignition/door/lock state, exact test point, scope settings, voltage levels, triggered action, raw capture/log reference, and repeated observations.
+
+Prefer passive characterization before injection/replay. Do not connect unknown automotive signals directly to MCU logic levels.
+
+Do not call a frame decoded from a single correlation. Separate observation from interpretation.
+
+## Power / hardware discipline
+
+Permanent vehicle electronics must account for automotive transients, reverse polarity, cranking voltage, low-quiescent regulation, sleep/wake behavior, brownout/reset safety, ESD, and safe output states.
+
+Preserve actual connector/terminal families, wire compatibility, crimp tooling, and vehicle verification for reversible harness work.
+
+## Mirror discipline
+
+Do not select the final mirror driver until bench testing establishes polarity, startup/running/end-stop current, end-stop behavior, and coexistence with the OEM/JDM switch.
+
+Automatic mirror actions must respect ignition/state inhibit, timeout/fault handling, pause behavior, and safe reset state.
+
+## Future keyless-start boundary
+
+Future start is not part of the current access milestone. Reserve inexpensive capacity where sensible, but do not let start-control work block passive-entry development.
+
+Start authorization must eventually remain a separate safety-critical state machine. Credential loss while driving must never command engine shutdown.
+
+## Cross-project boundaries
+
+- vehicle-wide Toyota wiring/network conclusions may also be summarized in `Celica-engineering-knowledge`;
+- Street Build owns final drivetrain/EMU/harness/body-function work outside CeliKey's access-control interfaces;
+- Baseline owns current-car mechanical restoration;
+- Side Projects owns BBK/EPS.
+
+Use explicit dependencies rather than duplicating work across repositories.
 
 ## Definition of done
 
-A task is not `done` merely because the physical or research activity occurred.
+A task is not `done` merely because the activity occurred. Before completion:
 
-Before changing a task to `done`:
-
-1. Record durable findings, measurements, files, or test results in the appropriate documentation.
-2. Update any affected decision record.
-3. Add newly exposed follow-on work to `tasks.csv`.
-4. Re-evaluate dependent tasks and move them from `blocked` to `ready` when appropriate.
-5. Update project phase/state if the work materially changed maturity.
-
-The completed task should point through `doc_link` to the durable result whenever practical.
-
-## Project phase
-
-When `project.yaml` exists, use a maturity value such as:
-
-`idea -> research -> concept -> selected -> design -> prototype -> verify -> build -> complete`
-
-Phase describes subsystem maturity, not whether individual tasks are complete.
-
-## CeliKey-specific engineering priorities
-
-Protect these current architectural principles unless new evidence explicitly changes them:
-
-- Preserve the factory Toyota key/remote/immobilizer as a fallback.
-- Prefer reversible/OEM-like vehicle interfaces.
-- Prefer integration through the factory receiver / Body ECU path when it preserves factory lock logic, chirp, and light-flash acknowledgement.
-- Keep dedicated control paths for lock/unlock, power-folding mirrors, and future keyless/push-button start.
-- Treat RDA signaling as unverified until characterized on the actual car.
-- Preserve background-operation and parked-current requirements as first-class constraints.
-- Do not collapse bench proof-of-concept behavior into a production vehicle assumption without verification.
-
-## Key interfaces and dependencies
-
-CeliKey may create or consume dependencies involving:
-
-- Toyota receiver / Body ECU / RDA interface
-- power-folding mirror driver
-- ignition state
-- future start authorization
-- overhead DOME power architecture
-- BLE/UWB/NFC credential behavior
-- iOS background execution
-- vehicle battery quiescent-current budget
-- broader Celica electrical/body-network work
-
-Current program boundaries are:
-
-- Street Build owns final engine-controls/harness/cluster-body integration.
-- Baseline owns current-car mechanical restoration and packaging work.
-- Side Projects owns BBK and EPS.
-
-When work exposes an interface owned by another Celica project, create an explicit cross-project task dependency rather than burying it in notes or reviving the retired subsystem-prefix architecture.
+1. preserve the useful result in the appropriate durable document;
+2. update affected decisions/current architecture;
+3. add only genuinely useful follow-on tasks;
+4. re-evaluate dependent tasks and newly ready work;
+5. preserve source/test/log/CAD references where relevant;
+6. update project maturity if warranted.
 
 ## End-of-session reconciliation
 
-After a brainstorming, research, coding, bench-test, or vehicle-test session that materially advances the project, reconcile the repository before stopping:
+After meaningful work, ask:
 
-- What new facts were established?
-- What assumptions were invalidated?
-- What decisions changed?
-- What open questions remain?
-- What new tasks were created?
-- Which dependencies changed?
-- Which blocked tasks are now ready?
-- Did project maturity change?
-- Are sources and provenance preserved?
+- What fact was established?
+- What assumption changed?
+- What decision changed or remains open?
+- What needs verification?
+- What task changed state?
+- What dependency changed?
+- Is the durable record sufficient to resume months later?
 
-Do not paste a conversation transcript as project documentation. Convert the useful outcome into concise engineering state.
+Do not paste chat transcripts as project documentation. Convert them into concise engineering state.
