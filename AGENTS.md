@@ -26,6 +26,18 @@ Before making technical changes or updating project state, read the relevant cur
 
 Treat the repository as authoritative over remembered conversation context when they conflict, unless the repository is explicitly being corrected.
 
+## Collaboration rule
+
+The user may report CeliKey state changes in natural language from any chat, for example:
+
+- `CeliKey: the oscilloscope arrived.`
+- `I captured the RDA line during unlock.`
+- `That receiver pin is different on my car.`
+
+Do not require the user to know task IDs, filenames, or CSV structure. Read the repository, resolve the affected task/state, update durable documentation and dependencies as appropriate, and report what changed.
+
+If the user explicitly says not to update GitHub yet, discuss only.
+
 ## Engineering state model
 
 Classify new information before recording it:
@@ -129,7 +141,7 @@ Use semicolon-separated task IDs in `blocked_by`, for example:
 
 Cross-project dependencies may reference another globally unique task ID, for example:
 
-`HAR-032`
+`STREET-010` or `BASE-005`
 
 A blocked task must identify the actual dependency whenever known. Do not use `blocked` merely to mean low priority.
 
@@ -181,7 +193,13 @@ CeliKey may create or consume dependencies involving:
 - vehicle battery quiescent-current budget
 - broader Celica electrical/body-network work
 
-When work exposes an interface owned by another Celica project, create an explicit cross-project task dependency rather than burying it in notes.
+Current program boundaries are:
+
+- Street Build owns final engine-controls/harness/cluster-body integration.
+- Baseline owns current-car mechanical restoration and packaging work.
+- Side Projects owns BBK and EPS.
+
+When work exposes an interface owned by another Celica project, create an explicit cross-project task dependency rather than burying it in notes or reviving the retired subsystem-prefix architecture.
 
 ## End-of-session reconciliation
 
