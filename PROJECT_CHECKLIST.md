@@ -1,196 +1,132 @@
-# CeliKey Project Checklist
+# CeliKey Milestone Roadmap
 
-**Last updated:** 2026-08-18
+**Checkpoint:** 2026-08-26
 
-Use this as the simple working checklist for the project. Detailed reasoning belongs in the other project documents.
+This file is a **stable milestone/context map**, not a second task manager.
+
+- `tasks.csv` is the canonical executable work queue and task-status source.
+- `PROJECT.md` is the canonical current engineering state.
+- Detailed architecture belongs in `CELIKEY_PCB_CONCEPT.md` and topic-specific reference files.
+
+Keep these section headings stable because `tasks.csv` links into them for context.
 
 ## 1. Core UWB / iPhone Proof of Concept
 
-- [x] Bring up DWM3001CDK.
-- [x] Flash known-good QANI firmware.
-- [x] Verify RTT boot output.
-- [x] Confirm BLE connection from iPhone.
-- [x] Confirm UWB distance ranging.
-- [x] Confirm UWB direction.
-- [x] Confirm onboard threshold / hysteresis logic.
-- [x] Confirm locked-screen background ranging.
-- [x] Confirm notifications while backgrounded.
-- [x] Confirm background recovery after long absence.
-- [ ] Measure where the ~13 s reacquisition delay occurs.
-- [ ] Repeat long-away / return test multiple times.
-- [ ] Establish acceptable passive-entry reacquisition target.
+Proven:
+
+- DWM3001CDK bring-up and known-good QANI firmware.
+- BLE connection and UWB distance/direction ranging from iPhone.
+- Accessory-side threshold/hysteresis behavior.
+- locked-screen/background ranging and notifications.
+- long-away recovery at proof-of-concept level.
+- force-quit stops passive behavior.
+
+Current gate:
+
+- instrument the lifecycle;
+- repeat long-away/return tests;
+- identify where the observed ~13 s reacquisition delay occurs;
+- establish a practical passive-entry reacquisition target.
 
 ## 2. iOS / CeliKey App
 
-- [x] Build and run the recovered Qorvo-derived iOS sample.
-- [x] Install and run on physical iPhone.
-- [x] Confirm force-quit stops passive behavior.
-- [ ] Add timestamped logging for:
-  - [ ] BLE disconnect.
-  - [ ] BLE reconnect.
-  - [ ] Nearby Interaction suspend.
-  - [ ] Nearby Interaction resume/start.
-  - [ ] First valid UWB range.
-  - [ ] Secure-bubble enter.
-  - [ ] Secure-bubble exit.
-- [ ] Remove unnecessary demo/MQTT functionality.
-- [ ] Rename / reduce project into a minimal CeliKey app.
-- [ ] Preserve known-good background operation during cleanup.
-- [ ] Add manual `LOCK` / `UNLOCK` controls.
-- [ ] Add `Passive Entry` ON / PAUSED control.
-- [ ] Add temporary / indefinite pause behavior.
-- [ ] Define credential enrollment / pairing workflow.
-- [ ] Define secure phone authentication implementation.
+Current direction:
+
+- preserve the known-good Qorvo-derived sample until logging explains background recovery;
+- then reduce it into a minimal CeliKey app without breaking background behavior;
+- add manual LOCK/UNLOCK and explicit Passive Entry ON/PAUSED controls;
+- define enrollment/re-pairing and a secure authentication mechanism distinct from proximity alone.
+
+Implementation details and status belong in `tasks.csv`.
 
 ## 3. Vehicle RDA Characterization
 
-- [ ] Obtain/use the FNIRSI 2D15P oscilloscope/multimeter.
-- [ ] Locate and positively identify the installed receiver RDA wire.
-- [ ] Measure RDA idle/high/low voltage before connecting any low-voltage digital input or protected capture interface.
-- [ ] Build protected high-impedance RDA capture interface.
-- [ ] Capture at least 10 LOCK commands.
-- [ ] Capture at least 10 UNLOCK commands.
-- [ ] Capture staged / second UNLOCK behavior.
-- [ ] Capture PANIC or other useful remote commands if available.
-- [ ] Determine whether LOCK / UNLOCK frames are repeatable.
-- [ ] Determine RDA output topology.
-- [ ] Determine whether PRG participates in normal operation.
-- [ ] Document waveform timing and electrical characteristics.
+The FNIRSI scope/multimeter ordered for initial characterization has been delivered and is available for use.
+
+Characterization sequence:
+
+1. positively identify the installed receiver RDA wire on the actual retrofitted car;
+2. measure idle/high/low voltage and infer source/sink topology before attaching logic-level hardware;
+3. build a protected high-impedance capture interface based on the measured electrical behavior;
+4. capture repeated LOCK and UNLOCK commands plus useful staged/PANIC behavior;
+5. analyze timing, framing, repeatability, counters/checksums, and PRG participation where relevant.
+
+Preserve raw captures and test conditions. Do not call a frame decoded from a single correlation.
 
 ## 4. RDA Replay / Lock Integration
 
-- [ ] Design a safe temporary RDA isolation/replay fixture.
-- [ ] Replay captured LOCK waveform.
-- [ ] Verify door-lock behavior.
-- [ ] Verify factory chirp behavior.
-- [ ] Verify factory light-flash behavior.
-- [ ] Replay captured UNLOCK waveform.
-- [ ] Verify staged unlock behavior if applicable.
-- [ ] Confirm OEM receiver still works after restoration.
-- [ ] Select final RDA coexistence topology:
-  - [ ] switched source;
-  - [ ] compatible parallel injection;
-  - [ ] temporary isolation during injection.
-- [ ] If RDA fails, evaluate Body ECU lock-switch input emulation fallback.
+Only after passive characterization:
+
+- build a safe isolation/replay fixture;
+- replay LOCK and UNLOCK commands;
+- verify Body ECU behavior, staged unlock, chirp, and light-flash acknowledgement;
+- confirm the OEM receiver still works after restoration;
+- select the final coexistence topology.
+
+If RDA proves unsuitable, evaluate Body ECU lock-switch input emulation as the fallback.
 
 ## 5. Power-Folding Mirrors
 
-- [ ] Bench-test JDM mirror fold wires.
-- [ ] Confirm fold / unfold polarity.
-- [ ] Measure startup current.
-- [ ] Measure running current.
-- [ ] Observe end-stop behavior / current.
-- [ ] Confirm OEM/JDM switch coexistence requirements.
-- [ ] Select mirror driver topology.
-- [ ] Define ignition inhibit behavior.
-- [ ] Define command timeout / fault behavior.
-- [ ] Integrate mirror fold with valid lock event.
-- [ ] Integrate mirror unfold with valid unlock event.
+Before selecting a driver:
+
+- bench-characterize fold/unfold polarity, startup/running/end-stop current, and end-stop behavior;
+- determine coexistence requirements with the OEM/JDM switch;
+- define command timeout/fault handling and ignition inhibit.
+
+Only then integrate fold/unfold with accepted lock/unlock events.
 
 ## 6. Vehicle RF / Placement Testing
 
-- [ ] Temporarily place DWM3001CDK at proposed behind-mirror location.
-- [ ] Test approach from driver side.
-- [ ] Test approach from passenger side.
-- [ ] Test approach from front.
-- [ ] Test approach from rear.
-- [ ] Test inside-vs-outside discrimination.
-- [ ] Determine whether one UWB node is sufficient.
-- [ ] If needed, define satellite-node locations.
-- [ ] Finalize practical approach / departure thresholds.
+Start with one high/central UWB node.
+
+Test real-car approach coverage and inside/outside discrimination from representative directions and phone positions. Add satellite nodes only if single-node testing demonstrates a real need. Final thresholds/hysteresis should follow measured vehicle behavior and background-recovery data.
 
 ## 7. Power / Harness Definition
 
-- [x] Verify the M3 pin 2 constant-B+ path in Toyota EWD399U.
-- [x] Identify the constant battery supply in Toyota EWD399U.
-- [ ] Identify true ground.
-- [x] Confirm courtesy-switched return/control behavior in Toyota EWD399U.
-- [x] Identify OEM Toyota connector / terminal family.
-- [ ] Verify occupied M3 cavities on the actual car.
-- [ ] Verify 20 AWG insulation OD is compatible with selected terminals.
-- [ ] Build temporary removable M3 T-harness for Rev 0 testing.
-- [ ] Design reversible inline dome-light T-harness.
-- [ ] Define parked current budget.
-- [ ] Define sleep / wake strategy.
-- [ ] Select automotive input protection.
-- [ ] Select low-quiescent 12 V → 3.3 V regulator.
+Current direction:
+
+- use the identified M3 overhead connector path for constant B+;
+- verify actual-car cavities/wire colors and a true ground point;
+- use a temporary removable T-harness for Rev 0 as needed;
+- define parked-current budget, sleep/wake strategy, automotive input protection, and low-quiescent regulation before Rev A;
+- final architecture is a reversible PCB-integrated passive M3 pass-through with a protected CeliKey B+ branch.
 
 ## 8. NFC Backup
 
-- [ ] Select NFC reader / controller.
-- [ ] Select secure card credential.
-- [ ] Confirm driver A-pillar / windshield mounting feasibility.
-- [ ] Define NFC daughterboard interface.
-- [ ] Bench-test card authentication.
-- [ ] Integrate NFC authorization into access logic.
+NFC is an independent backup credential path, not UID-only convenience access.
+
+Work includes reader/controller selection, secure card credential selection, driver-side mounting feasibility, daughterboard interface definition, bench authentication, then integration into the common authorization state machine.
 
 ## 9. Rev A PCB
 
-- [ ] Freeze minimum Rev A requirements.
-- [ ] Finalize MCU selection.
-- [ ] Finalize DWM3001C placement / antenna clearance.
-- [ ] Add automotive power front end.
-- [ ] Add RDA sense / drive / isolation circuitry.
-- [ ] Add mirror interface.
-- [ ] Add NFC daughterboard connector.
-- [ ] Add two optional satellite-UWB ports.
-- [ ] Add vehicle I/O connector.
-- [ ] Add `PWR`, `PHONE`, `UWB`, and `ACCESS` LEDs.
-- [ ] Add service / pairing button.
-- [ ] Add programming / debug pads.
-- [ ] Reserve future keyless-start I/O and power capacity.
-- [ ] Perform schematic review.
-- [ ] Layout PCB.
-- [ ] Review RF keepout / antenna placement.
-- [ ] Order Rev A boards.
-- [ ] Assemble and bench-test Rev A.
+Do not freeze Rev A until the vehicle interface, proximity policy, power architecture, secure authentication, mirror interface, and NFC interface are mature enough to size the hardware honestly.
+
+Rev A should include only justified functional interfaces plus sensible debug/service access and reserved future-start capacity. Schematic and layout reviews precede ordering.
 
 ## 10. Vehicle Integration
 
-- [ ] Install Rev A with reversible harnessing.
-- [ ] Start in `WOULD UNLOCK` / shadow mode.
-- [ ] Validate passive approach detection in real parking scenarios.
-- [ ] Validate departure / rearm behavior.
-- [ ] Connect real lock/unlock output only after shadow-mode confidence.
-- [ ] Validate OEM remote fallback.
-- [ ] Validate mechanical key fallback.
-- [ ] Validate ignition-on inhibits unwanted automatic actions.
-- [ ] Validate wash/service pause behavior.
-- [ ] Validate mirror behavior.
-- [ ] Measure parked current over meaningful duration.
+Install through reversible harnessing and validate progressively:
+
+1. shadow / `WOULD UNLOCK` behavior;
+2. realistic approach/departure/rearm behavior;
+3. real lock/unlock only after RDA acceptance and shadow-mode confidence;
+4. OEM remote and mechanical-key fallback;
+5. ignition inhibit, wash/service pause, mirror behavior;
+6. long-duration parked-current behavior.
 
 ## 11. Future Keyless / Push-Button Start
 
-_Not part of the current functional milestone._
+This is **not part of the current functional milestone**.
 
-- [ ] Define start-button behavior.
-- [ ] Map accessory / ignition / starter circuits.
-- [ ] Define clutch interlock.
-- [ ] Define engine-running detection.
-- [ ] Define immobilizer integration.
-- [ ] Define emergency/manual fallback.
-- [ ] Ensure phone/credential loss while driving cannot shut off engine.
-- [ ] Implement start authorization as a separate safety-critical state machine.
+Reserve interfaces now where inexpensive, but defer implementation until access control is mature. Future start authorization must be a separate safety-critical state machine with clutch interlock, running detection, immobilizer strategy, emergency/manual fallback, and a rule that credential loss while driving can never shut the engine off.
 
 ## 12. Documentation / Checkpoints
 
-- [x] Create project README.
-- [x] Create project-state document.
-- [x] Create PCB concept document.
-- [x] Create troubleshooting log.
-- [x] Create source/provenance record.
-- [x] Archive known-good firmware privately.
-- [x] Archive known-good iOS sample privately.
-- [x] Record source commit hash.
-- [x] Record firmware SHA-256.
-- [ ] Update `PROJECT.md` after each meaningful milestone.
-- [ ] Add new troubleshooting entries only when a problem is worth remembering.
-- [ ] Keep GitHub public repo free of unverified third-party binaries/source.
+The public repository should remain sufficient to resume engineering without chat history while keeping unverified third-party binaries/source out of the public tree.
 
----
+After meaningful work:
 
-## Current Next Three
-
-- [ ] Add timestamped BLE / NI / ranging logs to isolate the ~13 s reacquisition delay.
-- [ ] Repeat long-away / locked-phone return testing.
-- [ ] Begin RDA electrical characterization on the Celica.
+- update `PROJECT.md` when current architecture/state changes;
+- update `tasks.csv` status/dependencies;
+- preserve sources, measurements, raw-capture references, troubleshooting lessons, and decisions in the appropriate durable document;
+- do not duplicate the task queue in this roadmap.
